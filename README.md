@@ -29,3 +29,7 @@ The site is static, with no build step. Open `index.html` directly or serve the 
 
 - Change a plan: edit its row in the table in `index.html`, including the `data-` attributes (`data-tier`, `data-p` provider key, `data-s` storage, `data-price`, `data-cpu`, `data-ram`, `data-prepay`, and `data-renew` when there is a renewal price). The chart and insights use these attributes. Keep rows sorted by price within each level.
 - Add or move a data center: edit `sites` in `assets/map-data.js`. Each entry is `[label, x, y, approx]` in map coordinates (viewBox `0 0 960 500`). Set `approx` to `1` when only the country is known, which draws a ring instead of a dot.
+
+## License
+
+[MIT](LICENSE)
