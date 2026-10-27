@@ -1,21 +1,11 @@
 # VPS Provider Comparison
 
-[![Live site](https://img.shields.io/badge/live-lambdamax.github.io%2Fvps--catalog-0b6b4f)](https://lambdamax.github.io/vps-catalog/)
-[![Release](https://img.shields.io/github/v/release/lambdamax/vps-catalog)](https://github.com/lambdamax/vps-catalog/releases/latest)
-[![Pages deploy](https://github.com/lambdamax/vps-catalog/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/lambdamax/vps-catalog/actions/workflows/pages/pages-build-deployment)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/lambdamax/vps-catalog)](https://github.com/lambdamax/vps-catalog/commits/main)
-![HTML](https://img.shields.io/badge/HTML-E34F26?logo=html5&logoColor=white)
-![CSS](https://img.shields.io/badge/CSS-1572B6?logo=css3&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
-![No build step](https://img.shields.io/badge/build-none-lightgrey)
-![Providers](https://img.shields.io/badge/providers-6-0072B2)
-![Plan levels](https://img.shields.io/badge/plan%20levels-5-009E73)
-![Prices checked](https://img.shields.io/badge/prices%20checked-Oct%2027%2C%202026-E69F00)
-![Dependencies](https://img.shields.io/badge/dependencies-0-success)
-![Interactive dashboard](https://img.shields.io/badge/dashboard-interactive-7B61D9)
-![Dark mode](https://img.shields.io/badge/dark%20mode-yes-111715)
-![Zoomable map](https://img.shields.io/badge/map-zoom%20%2B%20pan-D55E00)
+![SVG](https://img.shields.io/badge/SVG-FFB13B?logo=svg&logoColor=black)
+![Google Fonts](https://img.shields.io/badge/Google%20Fonts-4285F4?logo=googlefonts&logoColor=white)
+![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222?logo=githubpages&logoColor=white)
 
 A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Linode (Akamai), Hetzner, Hostinger and OVHcloud at five levels:
 
