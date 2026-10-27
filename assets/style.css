@@ -122,23 +122,29 @@ tbody tr:hover td{background:var(--surface)}
 .note div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .empty{padding:1rem;text-align:center;color:var(--muted)}
 
-/* mid-width: chart and insights side by side, map below */
-@media (min-width:760px){
+/* tablet: chart and insights side by side, map below */
+@media (min-width:640px) and (max-width:899px){
   .overview{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
   .mappane{grid-column:1/-1}
 }
-/* desktop: everything fits one screen */
-@media (min-width:1100px) and (min-height:680px){
-  body{padding-block:.75rem;height:100vh;height:100dvh;overflow:hidden}
-  .wrap{height:100%;gap:.6rem}
-  .overview{flex:1 1 0;min-height:0;grid-template-columns:minmax(0,1.05fr) minmax(250px,.72fr) minmax(0,1.3fr);gap:0}
-  .overview>.pane{padding:0 1rem;border-left:1px solid var(--line)}
+/* from 900px: chart, insights and map share one row */
+@media (min-width:900px){
+  .overview{grid-template-columns:minmax(0,1.05fr) minmax(220px,.72fr) minmax(0,1.3fr);gap:0}
+  .overview>.pane{padding:0 .9rem;border-left:1px solid var(--line)}
   .overview>.pane:first-child{padding-left:0;border-left:0}
   .overview>.pane:last-child{padding-right:0}
-  .mappane{grid-column:auto}
-  .chart{height:auto;flex:1 1 0;min-height:140px}
+  .mapframe{aspect-ratio:auto;flex:1 1 0;min-height:150px}
+  .chart{height:auto;flex:1 1 0;min-height:170px}
+  .overview{min-height:300px}
+}
+/* desktop: everything fits one screen */
+@media (min-width:900px) and (min-height:600px){
+  body{padding-block:.75rem;height:100vh;height:100dvh;overflow:hidden}
+  .wrap{height:100%;gap:.6rem}
+  .overview{flex:1 1 0;min-height:0}
+  .chart{min-height:120px}
   .ins{overflow:auto;min-height:0}
-  .mapframe{flex:1 1 0;min-height:0;aspect-ratio:auto}
+  .mapframe{min-height:0}
   .tablepane{flex:0 1 auto;max-height:46%}
   .note div{-webkit-line-clamp:1}
   /* one line per plan row */
@@ -149,10 +155,72 @@ tbody tr:hover td{background:var(--surface)}
   #t td:nth-child(2){white-space:nowrap}
   .note{min-width:160px}
 }
-@media (min-width:1600px) and (min-height:680px){
+@media (min-width:1600px){
   .overview{grid-template-columns:minmax(0,1fr) minmax(280px,.65fr) minmax(0,1.6fr)}
 }
-@media (min-width:1100px) and (min-height:680px) and (max-height:779px){
+@media (min-width:900px) and (min-height:600px) and (max-height:779px){
   .ins .d{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ins>div{padding:.3rem 0}
+}
+
+/* linked highlight */
+.chart [data-k],#pins [data-k],.legend [data-k]{transition:opacity .15s}
+.chart .dim,#pins .dim{opacity:.12}
+.legend .dim{opacity:.4}
+tbody tr{cursor:pointer}
+tbody tr.dim td{opacity:.4}
+tbody tr.hl td{background:var(--surface)}
+.pchip.pinned{border-color:var(--fg)}
+.focus{font-size:.78rem;color:var(--muted);display:inline-flex;align-items:center}
+.focus span{color:var(--fg);font-weight:500}
+.legend button{font:inherit;font-size:.72rem;color:var(--muted);background:none;border:0;padding:.05rem .1rem;cursor:pointer;display:inline-flex;align-items:center;gap:.3rem}
+.legend button:hover{color:var(--fg)}
+.tip .r.on strong,.tip .r.on span.n{color:var(--fg);font-weight:600}
+/* price bars and $/GB column turn the table into a ranked chart */
+td.price{position:relative}
+.pbar{position:absolute;left:.7rem;bottom:2px;height:3px;border-radius:2px;width:calc((100% - 1.4rem) * var(--w,0));opacity:.85}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.num{color:var(--muted)}
+
+/* motion: entrances, button feedback, chart and data transitions */
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes pop{0%{transform:scale(0)}65%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes glow{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}100%{box-shadow:0 0 0 8px transparent}}
+body,.pop,.tip,.info,input,.scroll,th{transition:background-color .3s,color .3s,border-color .3s}
+.bar,.overview>.pane,.tablepane{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+.overview>.pane:nth-child(1){animation-delay:.06s}
+.overview>.pane:nth-child(2){animation-delay:.12s}
+.overview>.pane:nth-child(3){animation-delay:.18s}
+.tablepane{animation-delay:.24s}
+.lvbtn,.chip,.pchip,.vbtn,.tbtn,.about summary,.legend button,.link{transition:background-color .2s,color .2s,border-color .2s,opacity .2s,transform .15s cubic-bezier(.2,.8,.2,1),box-shadow .2s}
+.lvbtn:hover,.chip:hover,.pchip:hover,.vbtn:hover,.tbtn:hover,.about summary:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.lvbtn:active,.chip:active,.pchip:active,.vbtn:active,.tbtn:active,.legend button:active{transform:scale(.95);box-shadow:none}
+.lvbtn[aria-pressed="true"],.chip[aria-pressed="true"]{animation:glow .5s ease-out}
+.pchip i{transition:background-color .2s,transform .2s}
+.pchip:hover i{transform:scale(1.25)}
+.pane h2{transition:color .2s}
+.pane:hover h2,.tablepane:hover h2{color:var(--fg)}
+.mapframe{transition:box-shadow .25s}
+.mappane:hover .mapframe{box-shadow:inset 0 0 0 1px var(--line)}
+.about[open] .pop{animation:rise .2s ease-out}
+.tip:not([hidden]){animation:fade .12s ease-out}
+.tip{transition:left .16s cubic-bezier(.2,.8,.2,1)}
+.info.fade{animation:fade .18s ease-out}
+.chart .band{transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+.chart .series.draw path{stroke-dasharray:1;animation:draw .8s cubic-bezier(.4,0,.2,1) both}
+.chart .series.draw circle{animation:fade .3s .55s both}
+.chart circle.sel{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.2,.8,.2,1)}
+.chart .series.draw circle.sel{animation:fade .3s .55s both}
+#pins .pin{transform-box:fill-box;transform-origin:center;transition:transform .15s}
+#pins .pin:hover,#pins .pin:focus-visible{transform:scale(1.35)}
+#pins .pin.pop{animation:pop .4s cubic-bezier(.2,.8,.2,1) both}
+.ins>div.rise,tbody tr.rise{animation:rise .35s cubic-bezier(.2,.8,.2,1) both}
+.ins>div{transition:background-color .2s}
+.ins>div:hover{background:var(--surface)}
+.pbar{transition:width .6s cubic-bezier(.2,.8,.2,1),opacity .2s}
+tbody tr td{transition:background-color .15s,opacity .15s}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
 }

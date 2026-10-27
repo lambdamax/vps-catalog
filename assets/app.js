@@ -19,6 +19,25 @@
   var scale=1,rows=[].slice.call(document.querySelectorAll('#t tbody tr')),chips=[].slice.call(document.querySelectorAll('.chip')),
       q=document.getElementById('q'),empty=document.getElementById('empty'),f='all',level=1;
   function col(k){return 'var(--c-'+k+')'}
+  var calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* restart a CSS entrance animation on an element, with an optional stagger delay */
+  function enter(node,cls,delay){node.classList.remove(cls);void node.offsetWidth;node.style.animationDelay=(delay||0)+'ms';node.classList.add(cls)}
+  /* linked highlight: hovering a provider anywhere (chart, legend, map pin, table row, chip) highlights it everywhere; click pins it */
+  var hoverK=null,pinK=null,dash=document.querySelector('.wrap');
+  function paintFocus(){
+    var k=hoverK||pinK;
+    [].forEach.call(dash.querySelectorAll('.chart [data-k],.legend [data-k],#pins [data-k]'),function(e){e.classList.toggle('dim',!!k&&e.dataset.k!==k)});
+    rows.forEach(function(r){r.classList.toggle('dim',!!k&&r.dataset.p!==k);r.classList.toggle('hl',!!k&&r.dataset.p===k)});
+    [].forEach.call(pf.querySelectorAll('.pchip'),function(b){b.classList.toggle('pinned',b.dataset.k===pinK)});
+    var fb=document.getElementById('focus');
+    if(pinK){fb.hidden=false;fb.firstChild.textContent='Pinned: '+NAMES[pinK]+' '}else fb.hidden=true;
+  }
+  function hoverOn(k){hoverK=k;paintFocus()}
+  function hoverOff(){hoverK=null;paintFocus()}
+  function togglePin(k){pinK=pinK===k?null:k;paintFocus()}
+  function linkHover(node,k){
+    node.addEventListener('pointerenter',function(){hoverOn(k)});node.addEventListener('pointerleave',hoverOff);
+  }
   function money(v){return '$'+(v%1?v.toFixed(2):v.toFixed(0))}
   function lv(n){return LEVELS[n-1]}
   function lvTitle(n){return 'L'+n+' '+lv(n).tag}
@@ -45,8 +64,10 @@
     b.setAttribute('aria-label','Level '+L.n+', '+L.name);
     b.addEventListener('click',function(){setLevel(L.n)});lvBox.appendChild(b);
   });
+  var prevLevel=null,drawIn=true,levelChanged=true;
   function setLevel(n){
-    level=n;
+    if(n===level)return;
+    prevLevel=level;level=n;levelChanged=true;
     try{history.replaceState(null,'',n===1?location.pathname+location.search:'#level='+n)}catch(e){}
     render();
   }
@@ -56,7 +77,7 @@
     var b=document.createElement('button');b.className='pchip';b.type='button';b.dataset.k=k;b.setAttribute('aria-pressed','true');b.style.setProperty('--c',col(k));
     b.innerHTML='<i></i>'+NAMES[k]+' <small>'+DATA[k].length+'</small>';
     b.title=DATA[k].length+' data center locations';
-    b.addEventListener('click',function(){on[k]=!on[k];sync()});pf.appendChild(b);
+    b.addEventListener('click',function(){on[k]=!on[k];if(!on[k]&&pinK===k)pinK=null;sync()});linkHover(b,k);pf.appendChild(b);
   });
   [['All',true],['None',false]].forEach(function(a){
     var b=document.createElement('button');b.className='link';b.type='button';b.textContent=a[0];
@@ -85,8 +106,9 @@
   function show(g){
     var html='<b>'+g.items.length+' provider site'+(g.items.length>1?'s':'')+' here</b><br>';
     html+=g.items.map(function(i){return '<span class="dot" style="background:'+col(i.k)+'"></span>'+NAMES[i.k]+': '+i.n}).join('<br>');
-    info.innerHTML=html;info.hidden=false;
+    info.innerHTML=html;info.hidden=false;if(!calm)enter(info,'fade',0);
   }
+  var popPins=true;
   function drawPins(){
     pins.textContent='';
     var g=groups(),r=3.6*scale;
@@ -95,53 +117,68 @@
       grp.items.forEach(function(it,idx){
         var ang=(idx/n)*Math.PI*2-Math.PI/2,off=n>1?r*0.95:0;
         var cx=grp.x+Math.cos(ang)*off,cy=grp.y+Math.sin(ang)*off;
-        var c=el('circle',{cx:cx.toFixed(1),cy:cy.toFixed(1),r:r.toFixed(2)});
+        var c=el('circle',{cx:cx.toFixed(1),cy:cy.toFixed(1),r:r.toFixed(2),'data-k':it.k});
         if(it.a){c.setAttribute('fill','var(--sea)');c.setAttribute('fill-opacity','.6');c.setAttribute('stroke',col(it.k));c.setAttribute('stroke-width',(1.6*scale).toFixed(2))}
         else{c.setAttribute('fill',col(it.k));c.setAttribute('stroke','var(--sea)');c.setAttribute('stroke-width',(0.8*scale).toFixed(2))}
         a.appendChild(c);
       });
-      a.addEventListener('mouseenter',function(){show(grp)});a.addEventListener('focus',function(){show(grp)});a.addEventListener('click',function(){show(grp)});
+      a.addEventListener('mouseenter',function(){show(grp);if(n===1)hoverOn(grp.items[0].k)});a.addEventListener('mouseleave',hoverOff);a.addEventListener('focus',function(){show(grp)});a.addEventListener('click',function(){show(grp)});
       pins.appendChild(a);
+      if(popPins&&!calm)enter(a,'pop',Math.min(pins.childNodes.length*6,420));
     });
+    popPins=false;
+    paintFocus();
   }
 
   /* ---- chart: cheapest plan per provider at each level ---- */
   var chart=document.getElementById('chart'),legend=document.getElementById('legend'),tip=document.createElement('div');
   tip.className='tip';tip.hidden=true;chart.appendChild(tip);
-  function niceMax(v){var steps=[10,20,25,50,100,150,200];for(var i=0;i<steps.length;i++)if(v<=steps[i])return steps[i];return Math.ceil(v/100)*100}
   function drawChart(){
     var old=chart.querySelector('svg');if(old)chart.removeChild(old);
     tip.hidden=true;
     var W=chart.clientWidth||600,H=chart.clientHeight||300,pad={l:40,r:30,t:8,b:24};
     var iw=W-pad.l-pad.r,ih=H-pad.t-pad.b,keys=ORDER.filter(function(k){return on[k]});
-    var max=0;keys.forEach(function(k){for(var t=1;t<=5;t++){var p=cheapest(k,t);if(p&&p.price>max)max=p.price}});
-    max=niceMax(max||10);
+    /* log scale: entry prices ($2.50-$10) would otherwise pile up at the bottom under $96 plans */
+    var max=0,min=1e9;keys.forEach(function(k){for(var t=1;t<=5;t++){var p=cheapest(k,t);if(p){if(p.price>max)max=p.price;if(p.price<min)min=p.price}}});
+    var TICKS=[1,2,5,10,20,50,100,200,500],lo=1,hi=10;
+    if(max){lo=TICKS.filter(function(v){return v<=min}).pop()||1;hi=TICKS.filter(function(v){return v>=max})[0]||1000}
+    var L0=Math.log(lo),L1=Math.log(hi);
     function x(t){return pad.l+(t-1)*iw/4}
-    function y(v){return pad.t+ih-v/max*ih}
+    function y(v){return pad.t+ih-(Math.log(v)-L0)/(L1-L0)*ih}
+    /* nudge points that land on (nearly) the same spot sideways so tied prices stay visible */
+    var dx={};keys.forEach(function(k){dx[k]={}});
+    for(var t=1;t<=5;t++){
+      var pts=keys.map(function(k){var p=cheapest(k,t);return p?{k:k,y:y(p.price)}:null}).filter(Boolean).sort(function(a,b){return a.y-b.y}),grp=[];
+      pts.concat([null]).forEach(function(q){
+        if(q&&grp.length&&q.y-grp[grp.length-1].y<7){grp.push(q);return}
+        grp.forEach(function(g,i){dx[g.k][t]=(i-(grp.length-1)/2)*7});grp=q?[q]:[];
+      });
+    }
+    function px(k,t){return x(t)+(dx[k][t]||0)}
     var s=el('svg',{width:W,height:H,role:'img','aria-label':'Line chart of the lowest monthly price per provider at levels 1 to 5. The table below lists the same values.'});
     /* selected level band */
     var bw=Math.min(iw/4*0.7,90);
-    s.appendChild(el('rect',{class:'band',x:x(level)-bw/2,y:pad.t,width:bw,height:ih,rx:4}));
+    var band=el('rect',{class:'band',x:x(level)-bw/2,y:pad.t,width:bw,height:ih,rx:4});s.appendChild(band);
     /* grid and y axis */
     var gg=el('g',{class:'grid'}),ax=el('g',{class:'axis'});
-    for(var i=0;i<=4;i++){
-      var v=max*i/4,yy=y(v);
+    TICKS.forEach(function(v){
+      if(v<lo||v>hi)return;var yy=y(v);
       gg.appendChild(el('line',{x1:pad.l,x2:W-pad.r,y1:yy,y2:yy}));
       var tx=el('text',{x:pad.l-8,y:yy+4,'text-anchor':'end'});tx.textContent='$'+v;ax.appendChild(tx);
-    }
+    });
     LEVELS.forEach(function(L){
       var tx=el('text',{x:x(L.n),y:H-6,'text-anchor':'middle'});tx.textContent=iw<380?'L'+L.n:'L'+L.n+' '+L.tag;
       if(L.n===level)tx.setAttribute('class','sel');ax.appendChild(tx);
     });
     s.appendChild(gg);s.appendChild(ax);
     /* series */
-    var sg=el('g',{class:'series'});
+    var sg=el('g',{class:'series'+(drawIn&&!calm?' draw':'')});
     keys.forEach(function(k){
       var d='',pts=[];
-      for(var t=1;t<=5;t++){var p=cheapest(k,t);if(!p)continue;pts.push([t,p]);d+=(d?'L':'M')+x(t).toFixed(1)+','+y(p.price).toFixed(1)}
-      sg.appendChild(el('path',{d:d,stroke:col(k)}));
+      for(var t=1;t<=5;t++){var p=cheapest(k,t);if(!p)continue;pts.push([t,p]);d+=(d?'L':'M')+px(k,t).toFixed(1)+','+y(p.price).toFixed(1)}
+      sg.appendChild(el('path',{d:d,stroke:col(k),'data-k':k,pathLength:1}));
       pts.forEach(function(a){
-        var t=a[0],p=a[1],c=el('circle',{cx:x(t).toFixed(1),cy:y(p.price).toFixed(1),r:t===level?5:4});
+        var t=a[0],p=a[1],c=el('circle',{cx:px(k,t).toFixed(1),cy:y(p.price).toFixed(1),r:t===level?5:4,'data-k':k,class:t===level?'sel':''});
         /* 2px surface ring keeps overlapping dots readable; prepay intro prices are hollow */
         if(p.prepay){c.setAttribute('fill','var(--bg)');c.setAttribute('stroke',col(k));c.setAttribute('stroke-width','2')}
         else{c.setAttribute('fill',col(k));c.setAttribute('stroke','var(--bg)');c.setAttribute('stroke-width','2')}
@@ -153,23 +190,41 @@
     var xh=el('line',{class:'xhair',y1:pad.t,y2:pad.t+ih,visibility:'hidden'});s.appendChild(xh);
     LEVELS.forEach(function(L){
       var w=iw/4,h=el('rect',{class:'hit',x:Math.max(0,x(L.n)-w/2),y:pad.t,width:w,height:ih,tabindex:'0',role:'button','aria-label':'Select level '+L.n+', '+L.name});
-      function hover(){xh.setAttribute('x1',x(L.n));xh.setAttribute('x2',x(L.n));xh.setAttribute('visibility','visible');showTip(L.n,x(L.n),W)}
-      h.addEventListener('pointermove',hover);h.addEventListener('focus',hover);
-      h.addEventListener('pointerleave',function(){xh.setAttribute('visibility','hidden');tip.hidden=true});
-      h.addEventListener('blur',function(){xh.setAttribute('visibility','hidden');tip.hidden=true});
-      h.addEventListener('click',function(){setLevel(L.n)});
+      function nearest(e){
+        if(!e||e.offsetY==null)return null;var best=null,bd=1e9;
+        keys.forEach(function(k){var p=cheapest(k,L.n);if(!p)return;var dd=Math.abs(y(p.price)-e.offsetY);if(dd<bd){bd=dd;best=k}});
+        return bd<=18?best:null;
+      }
+      function hover(e){
+        xh.setAttribute('x1',x(L.n));xh.setAttribute('x2',x(L.n));xh.setAttribute('visibility','visible');
+        var k=nearest(e);if(k!==hoverK){hoverK=k;paintFocus()}
+        showTip(L.n,x(L.n),W);
+      }
+      function out(){xh.setAttribute('visibility','hidden');tip.hidden=true;hoverOff()}
+      h.addEventListener('pointermove',hover);h.addEventListener('focus',function(){hover(null)});
+      h.addEventListener('pointerleave',out);h.addEventListener('blur',out);
+      h.addEventListener('click',function(e){var k=nearest(e);if(k)pinK=k;if(L.n===level)paintFocus();else setLevel(L.n)});
       h.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setLevel(L.n)}});
       s.appendChild(h);
     });
     chart.insertBefore(s,tip);
+    /* slide the level band from the previous level instead of jumping */
+    if(prevLevel&&prevLevel!==level&&!calm){
+      band.style.transition='none';band.style.transform='translateX('+(x(prevLevel)-x(level))+'px)';
+      band.getBoundingClientRect();band.style.transition='';band.style.transform='';
+    }
+    prevLevel=null;drawIn=false;
     /* legend mirrors the mark: a line key per provider */
     legend.textContent='';
     keys.forEach(function(k){
-      var sp=document.createElement('span'),i=document.createElement('i');i.style.background=col(k);
-      sp.appendChild(i);sp.appendChild(document.createTextNode(NAMES[k]));legend.appendChild(sp);
+      var sp=document.createElement('button'),i=document.createElement('i');sp.type='button';sp.dataset.k=k;i.style.background=col(k);
+      sp.title='Hover to highlight, click to pin';
+      sp.appendChild(i);sp.appendChild(document.createTextNode(SHORT[k]));linkHover(sp,k);
+      sp.addEventListener('click',function(){togglePin(k)});legend.appendChild(sp);
     });
     var sp=document.createElement('span'),i=document.createElement('i');i.className='hollow';
-    sp.appendChild(i);sp.appendChild(document.createTextNode('Prepaid intro price'));legend.appendChild(sp);
+    sp.appendChild(i);sp.appendChild(document.createTextNode('Prepaid'));legend.appendChild(sp);
+    paintFocus();
   }
   function showTip(t,px,W){
     var list=ORDER.filter(function(k){return on[k]}).map(function(k){return cheapest(k,t)}).filter(Boolean)
@@ -177,7 +232,7 @@
     tip.textContent='';
     var h=document.createElement('h3');h.textContent='Level '+t+' · '+lv(t).tag;tip.appendChild(h);
     list.forEach(function(p){
-      var r=document.createElement('div');r.className='r';
+      var r=document.createElement('div');r.className='r'+((hoverK||pinK)===p.k?' on':'');
       var k=document.createElement('i');k.className='k';k.style.background=col(p.k);
       var v=document.createElement('strong');v.textContent=money(p.price);
       var n=document.createElement('span');n.className='n';n.textContent=name(p)+(p.prepay?' (prepay)':'');
@@ -191,18 +246,26 @@
 
   /* ---- insights for the selected level ---- */
   var ins=document.getElementById('ins'),insTitle=document.getElementById('ins-title');
+  var lastVals={},insN=0;
+  function countUp(node,label,val){
+    var m=/^(\$?)([\d.]+)(.*)$/.exec(val),from=lastVals[label];lastVals[label]=m?+m[2]:null;
+    if(!m||calm||from==null||from===+m[2])return;
+    var to=+m[2],dec=(m[2].split('.')[1]||'').length,t0=performance.now();
+    (function step(t){var k=Math.min(1,(t-t0)/450),e=1-Math.pow(1-k,3);
+      node.textContent=m[1]+(from+(to-from)*e).toFixed(dec)+m[3];if(k<1)requestAnimationFrame(step)})(t0);
+  }
   function tile(label,val,text){
-    var d=document.createElement('div');
+    var d=document.createElement('div');if(!calm)enter(d,'rise',insN++*45);
     var b=document.createElement('dt');b.textContent=label;
     var v=document.createElement('dd');v.className='v';v.textContent=val;
     var p=document.createElement('dd');p.className='d';p.textContent=text;p.title=text;
-    d.appendChild(b);d.appendChild(v);d.appendChild(p);ins.appendChild(d);
+    d.appendChild(b);d.appendChild(v);d.appendChild(p);ins.appendChild(d);countUp(v,label,val);
   }
   function name(p){return p.plan.indexOf(SHORT[p.k])===0?p.plan:SHORT[p.k]+' '+p.plan}
   function minBy(list,fn){var b=null;list.forEach(function(p){if(!b||fn(p)<fn(b))b=p});return b}
   function drawInsights(){
     insTitle.textContent='Insights · '+lvTitle(level);
-    ins.textContent='';
+    ins.textContent='';insN=0;
     var L=tierPlans(level);
     if(!L.length){tile('No providers selected','–','Turn on at least one provider.');return}
     var low=minBy(L,function(p){return p.price});
@@ -232,12 +295,35 @@
 
   /* ---- table ---- */
   var tblTitle=document.getElementById('tbl-title');
+  var th=document.createElement('th');th.textContent='$ / GB RAM';th.className='num';
+  document.querySelector('#t thead th:nth-child(3)').after(th);
+  rows.forEach(function(r,i){
+    var p=PLANS[i],pc=r.querySelector('.price'),bar=document.createElement('span');
+    bar.className='pbar';bar.style.background=col(p.k);pc.appendChild(bar);r._bar=bar;
+    var td=document.createElement('td');td.className='num';td.textContent=money(p.price/p.ram);pc.after(td);
+    r.addEventListener('pointerenter',function(){hoverOn(p.k)});r.addEventListener('pointerleave',hoverOff);
+    r.addEventListener('click',function(e){if(e.target.closest('a'))return;togglePin(p.k)});
+  });
+  document.getElementById('focus').querySelector('button').addEventListener('click',function(){pinK=null;paintFocus()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pinK){pinK=null;paintFocus()}});
   function apply(){
     var s=q.value.toLowerCase(),n=0;
     rows.forEach(function(r){
       var ok=+r.dataset.tier===level&&on[r.dataset.p]&&(f==='all'||r.dataset.s===f)&&r.textContent.toLowerCase().indexOf(s)>-1;
       r.hidden=!ok;if(ok)n++;
     });
+    /* price bars scale to the most expensive visible plan at this level */
+    var max=0;rows.forEach(function(r,i){if(!r.hidden&&PLANS[i].price>max)max=PLANS[i].price});
+    var vis=0;
+    rows.forEach(function(r,i){
+      var w=max?PLANS[i].price/max:0;
+      if(levelChanged&&!r.hidden&&!calm){
+        enter(r,'rise',vis++*35);
+        r._bar.style.transition='none';r._bar.style.setProperty('--w',0);r._bar.getBoundingClientRect();r._bar.style.transition='';
+      }
+      r._bar.style.setProperty('--w',w);
+    });
+    levelChanged=false;
     empty.hidden=n>0;
     tblTitle.textContent='Plans · '+lvTitle(level);
   }
@@ -245,12 +331,13 @@
   function render(){
     [].forEach.call(lvBox.querySelectorAll('.lvbtn'),function(b){b.setAttribute('aria-pressed',+b.dataset.n===level?'true':'false')});
     document.getElementById('use').textContent=lv(level).use;
-    drawChart();drawInsights();apply();
+    drawChart();drawInsights();apply();paintFocus();
   }
   function sync(){
+    drawIn=true;
     [].forEach.call(pf.querySelectorAll('.pchip'),function(b){b.setAttribute('aria-pressed',on[b.dataset.k]?'true':'false')});
     info.hidden=true;
-    drawPins();render();
+    popPins=true;drawPins();render();
   }
   chips.forEach(function(c){c.addEventListener('click',function(){
     f=c.dataset.f;chips.forEach(function(x){x.setAttribute('aria-pressed',x===c?'true':'false')});apply();
