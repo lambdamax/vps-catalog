@@ -247,6 +247,7 @@ tbody tr td{transition:background-color .15s,opacity .15s}
 /* city labels on the maximized map */
 #labels{pointer-events:none}
 #labels text{font-family:var(--body);font-weight:500;fill:var(--fg);stroke:var(--sea);stroke-linejoin:round;paint-order:stroke;opacity:.88}
+#labels tspan.prov{font-weight:400;fill:var(--muted)}
 
 /* modal zoom controls and pan cursor */
 .mm-zoom{display:flex;align-items:center;gap:.2rem}

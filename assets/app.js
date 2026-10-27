@@ -206,25 +206,33 @@
     labels.textContent='';
     if(frame.parentElement!==mmBody)return;
     var cw=svg.clientWidth||1,ch=svg.clientHeight||1,k=Math.max(curVB[2]/cw,curVB[3]/ch),fs=11*k,placed=[],r=4.2*scale;
+    var withProv=960/curVB[2]>=1.2,fs2=fs*.86;
     var list=Object.keys(g).map(function(key){return g[key]}).sort(function(a,b){return b.items.length-a.items.length});
     /* every dot cluster is an obstacle, so a label never sits on another location's dots */
     var dots=list.map(function(grp){var rr=r*(grp.items.length>1?2.1:1.2);return {grp:grp,b:[grp.x-rr,grp.y-rr,2*rr,2*rr]}});
     function hit(a,b){return a[0]<b[0]+b[2]&&b[0]<a[0]+a[2]&&a[1]<b[1]+b[3]&&b[1]<a[1]+a[3]}
     list.forEach(function(grp){
-      var names=[];grp.items.forEach(function(i){var c=city(i.n);if(names.indexOf(c)<0)names.push(c)});
-      var text=names.slice(0,2).join(' / ')+(names.length>2?' +'+(names.length-2):''),w=text.length*fs*.56,h=fs*1.1;
-      var off=r*(grp.items.length>1?2.1:1.2)+3*k,gap=off+fs*.2;
-      /* candidate spots: right, left, above, below; [box x, box y, text x, text y, anchor] */
-      var spots=[[grp.x+off,grp.y-h/2,grp.x+off,grp.y+fs*.35,'start'],[grp.x-off-w,grp.y-h/2,grp.x-off,grp.y+fs*.35,'end'],
-                 [grp.x-w/2,grp.y-gap-h,grp.x,grp.y-gap-fs*.25,'middle'],[grp.x-w/2,grp.y+gap,grp.x,grp.y+gap+fs*.85,'middle']];
-      spots.some(function(o){
+      var names=[],provs=[];
+      grp.items.forEach(function(i){var c=city(i.n);if(names.indexOf(c)<0)names.push(c);if(provs.indexOf(SHORT[i.k])<0)provs.push(SHORT[i.k])});
+      var text=names.slice(0,2).join(' / ')+(names.length>2?' +'+(names.length-2):'');
+      /* zoomed in: try a second line naming the providers at this spot, falling back to the city alone if it doesn't fit */
+      (withProv?[provs.join(' · '),'']:['']).some(function(sub){
+      var w=Math.max(text.length*fs*.56,sub.length*fs2*.55),h=fs*1.1+(sub?fs2*1.2:0);
+      var off=r*(grp.items.length>1?2.1:1.2)+3*k,gap=off+fs*.2,top=grp.y-fs*.6;
+      /* candidate boxes: right, left, above, below, each with its text anchor */
+      var spots=[[grp.x+off,top,'start'],[grp.x-off-w,top,'end'],[grp.x-w/2,grp.y-gap-h,'middle'],[grp.x-w/2,grp.y+gap,'middle']];
+      return spots.some(function(o){
         var b=[o[0],o[1],w,h];
         if(b[0]<curVB[0]||b[0]+w>curVB[0]+curVB[2]||b[1]<curVB[1]||b[1]+h>curVB[1]+curVB[3])return false;
         if(placed.some(function(p){return hit(b,p)}))return false;
         if(dots.some(function(d){return d.grp!==grp&&hit(b,d.b)}))return false;
         placed.push(b);
-        var t=el('text',{x:o[2].toFixed(2),y:o[3].toFixed(2),'text-anchor':o[4],'font-size':fs.toFixed(2),'stroke-width':(3*k).toFixed(2)});
-        t.textContent=text;labels.appendChild(t);return true;
+        var tx=(o[2]==='start'?b[0]:o[2]==='end'?b[0]+w:b[0]+w/2).toFixed(2);
+        var t=el('text',{x:tx,y:(b[1]+fs*.85).toFixed(2),'text-anchor':o[2],'font-size':fs.toFixed(2),'stroke-width':(3*k).toFixed(2)});
+        t.textContent=text;
+        if(sub){var ts=el('tspan',{x:tx,dy:(fs2*1.2).toFixed(2),'font-size':fs2.toFixed(2),class:'prov'});ts.textContent=sub;t.appendChild(ts)}
+        labels.appendChild(t);return true;
+      });
       });
     });
   }
