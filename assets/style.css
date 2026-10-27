@@ -244,10 +244,6 @@ tbody tr td{transition:background-color .15s,opacity .15s}
 .mm-body .info{font-size:.8rem;padding:.45rem .7rem}
 .mapmodal .key{white-space:normal}
 
-/* close button shows its Esc shortcut */
-.vbtn.close{gap:.35rem;padding:.18rem .45rem .18rem .4rem}
-.vbtn.close kbd{font:inherit;font-size:.66rem;line-height:1;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.12rem .3rem;background:var(--surface)}
-
 /* modal zoom controls and pan cursor */
 .mm-zoom{display:flex;align-items:center;gap:.2rem}
 .mm-zoom .zl{min-width:2.6rem;text-align:center;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
