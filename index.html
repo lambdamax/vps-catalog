@@ -36,39 +36,41 @@
 
   <noscript><p>The chart, map and filters need JavaScript. The table below lists every level and works without it.</p></noscript>
 
-  <section class="overview" aria-label="Overview">
-    <div class="pane chartpane">
-      <div class="ph"><h2>Lowest price by level</h2></div>
-      <div class="chart" id="chart"></div>
-      <div class="legend" id="legend"></div>
-      <p class="cap">Log price scale; tied prices are nudged apart. Hover any provider (line, legend, pin, row) to highlight it everywhere; click to pin.</p>
-    </div>
-
-    <div class="pane inspane" aria-live="polite">
-      <div class="ph"><h2 id="ins-title">Insights · L1 Entry</h2></div>
+  <main class="dash" aria-label="Dashboard">
+    <section class="kpis" aria-live="polite" aria-labelledby="ins-title">
+      <h2 class="sr" id="ins-title">Insights · L1 Entry</h2>
       <dl class="ins" id="ins">
         <div><dt>Lowest price</dt><dd class="v">$2.50</dd><dd class="d">Vultr Regular Performance, but only 0.5 GB RAM.</dd></div>
         <div><dt>Most RAM per dollar</dt><dd class="v">4 GB</dd><dd class="d">Hostinger KVM 1 and Hetzner CX23 at $6.49; OVH VPS-1 from $4.54 on prepay.</dd></div>
         <div><dt>Watch the renewal</dt><dd class="v">$11.99</dd><dd class="d">Hostinger rises from $6.49 to $11.99. OVH renewal is reported near double.</dd></div>
       </dl>
+    </section>
+
+    <div class="mid">
+      <section class="pane chartpane" aria-label="Price by level">
+        <div class="ph"><h2>Lowest price by level</h2><div class="legend" id="legend"></div></div>
+        <div class="chart" id="chart"></div>
+        <p class="cap" title="Log price scale; tied prices are nudged apart. Hover any provider (line, legend, pin, row or insight) to highlight it everywhere; click to pin.">Log scale · tied prices nudged apart · hover to highlight, click to pin</p>
+      </section>
+
+      <section class="pane mappane" aria-label="Data centers">
+        <div class="ph" id="map-ph"><h2>Data centers</h2><div class="views" id="views" role="group" aria-label="Map region"></div><button class="vbtn icon" id="map-max" type="button" aria-label="Maximize map" title="Maximize map"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="mapslot" id="map-slot">
+        <div class="mapframe" id="mapframe"><svg id="map" viewBox="0 0 960 500" role="img" aria-label="World map of VPS data center locations by provider"><path class="land" id="land"/><g id="pins"></g></svg><div class="info" id="info" hidden></div></div>
+        </div>
+        <p class="key" title="Dot: city confirmed. Ring: the provider lists only the country, so the dot sits at the country centre. Hetzner CX plans run only in Germany and Finland.">Dot: city confirmed · Ring: country only · Hetzner CX: Germany and Finland only</p>
+      </section>
     </div>
 
-    <div class="pane mappane">
-      <div class="ph"><h2>Data centers</h2><div class="views" id="views" role="group" aria-label="Map region"></div></div>
-      <div class="mapframe"><svg id="map" viewBox="0 0 960 500" role="img" aria-label="World map of VPS data center locations by provider"><path class="land" id="land"/><g id="pins"></g></svg><div class="info" id="info" hidden></div></div>
-      <p class="key">Dot: city confirmed. Ring: country only. Hetzner CX plans run only in Germany and Finland.</p>
-    </div>
-  </section>
-
-  <section class="tablepane" aria-label="Plans">
-    <div class="ph"><h2 id="tbl-title">Plans</h2><p class="use" id="use">Cheapest plan per provider: tests, a static site or a small bot.</p>
-      <div class="controls">
-        <button class="chip" data-f="all" aria-pressed="true">All storage</button>
-        <button class="chip" data-f="nvme" aria-pressed="false">NVMe</button>
-        <button class="chip" data-f="ssd" aria-pressed="false">SSD</button>
-        <input id="q" type="search" placeholder="Filter by provider or plan" aria-label="Filter by provider or plan">
+    <section class="tablepane" aria-label="Plans">
+      <div class="ph"><h2 id="tbl-title">Plans</h2><p class="use" id="use">Cheapest plan per provider: tests, a static site or a small bot.</p>
+        <div class="controls">
+          <button class="chip" data-f="all" aria-pressed="true">All storage</button>
+          <button class="chip" data-f="nvme" aria-pressed="false">NVMe</button>
+          <button class="chip" data-f="ssd" aria-pressed="false">SSD</button>
+          <input id="q" type="search" placeholder="Filter by provider or plan" aria-label="Filter by provider or plan">
+        </div>
       </div>
-    </div>
     <div class="scroll">
       <table id="t">
         <thead><tr><th class="lvlc">Level</th><th>Provider</th><th>Price (USD/mo)</th><th>vCPU / RAM / Storage</th><th>Bandwidth</th><th>Notes</th></tr></thead>
@@ -217,7 +219,17 @@
       </table>
       <div class="empty" id="empty" hidden>No plans match the current filter.</div>
     </div>
-  </section>
+    </section>
+  </main>
+
+  <dialog class="mapmodal" id="map-modal" aria-labelledby="mm-title">
+    <div class="mm-card" id="mm-card">
+      <div class="ph"><h2 id="mm-title">Data centers</h2><div class="mm-legend" id="mm-legend"></div><div class="mm-views" id="mm-views"></div>
+        <button class="vbtn icon" id="map-close" type="button" aria-label="Close map" title="Close (Esc)"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+      <div class="mm-body" id="mm-body"></div>
+      <p class="key">Dot: city confirmed. Ring: the provider lists only the country, so the dot sits at the country centre. Hover a dot for its sites; hover a provider to highlight its locations.</p>
+    </div>
+  </dialog>
 </div>
 
 <script src="assets/map-data.js"></script>

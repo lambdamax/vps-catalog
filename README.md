@@ -8,6 +8,12 @@
 ![CSS](https://img.shields.io/badge/CSS-1572B6?logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
 ![No build step](https://img.shields.io/badge/build-none-lightgrey)
+![Providers](https://img.shields.io/badge/providers-6-0072B2)
+![Plan levels](https://img.shields.io/badge/plan%20levels-5-009E73)
+![Prices checked](https://img.shields.io/badge/prices%20checked-Oct%2027%2C%202026-E69F00)
+![Dependencies](https://img.shields.io/badge/dependencies-0-success)
+![Interactive dashboard](https://img.shields.io/badge/dashboard-interactive-7B61D9)
+![Dark mode](https://img.shields.io/badge/dark%20mode-yes-111715)
 
 A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Linode (Akamai), Hetzner, Hostinger and OVHcloud at five levels:
 
@@ -19,7 +25,7 @@ A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Lin
 | L4 | Cheapest with at least 8 GB RAM | Several containers, CI runner |
 | L5 | Cheapest with at least 16 GB RAM | Many services, larger databases |
 
-It is one interactive dashboard. A line chart of the lowest price per level (log scale), insights for the selected level and a map of each provider's data centers sit in one row, above a plan table with price bars and a $/GB RAM column. Hovering a provider in any of them highlights it everywhere, and clicking pins it. On desktop the whole dashboard fits one screen. Notes and sources sit behind the "Notes & sources" button.
+It is one interactive dashboard in a single panel: insight tiles for the selected level, a line chart of the lowest price per level (log scale) beside a data center map, and a plan table with price bars and a $/GB RAM column. Hovering a provider anywhere (line, legend, map dot, insight tile or table row) highlights it across the dashboard, and clicking pins it. The map can be maximized into a large modal card and zoomed by region. On desktop (900px wide and up) the page never scrolls; only the plan list scrolls inside when the window is short. Notes and sources sit behind the "Notes & sources" button. Motion respects the reduced-motion setting.
 
 **Live page:** https://lambdamax.github.io/vps-catalog/
 

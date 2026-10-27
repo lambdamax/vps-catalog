@@ -26,7 +26,9 @@
   var hoverK=null,pinK=null,dash=document.querySelector('.wrap');
   function paintFocus(){
     var k=hoverK||pinK;
-    [].forEach.call(dash.querySelectorAll('.chart [data-k],.legend [data-k],#pins [data-k]'),function(e){e.classList.toggle('dim',!!k&&e.dataset.k!==k)});
+    [].forEach.call(document.querySelectorAll('.chart [data-k],.legend [data-k],#pins [data-k],.ins [data-k],.mm-legend [data-k]'),function(e){
+      e.classList.toggle('dim',!!k&&e.dataset.k!==k);e.classList.toggle('focus',!!k&&e.dataset.k===k);
+    });
     rows.forEach(function(r){r.classList.toggle('dim',!!k&&r.dataset.p!==k);r.classList.toggle('hl',!!k&&r.dataset.p===k)});
     [].forEach.call(pf.querySelectorAll('.pchip'),function(b){b.classList.toggle('pinned',b.dataset.k===pinK)});
     var fb=document.getElementById('focus');
@@ -38,6 +40,7 @@
   function linkHover(node,k){
     node.addEventListener('pointerenter',function(){hoverOn(k)});node.addEventListener('pointerleave',hoverOff);
   }
+  function ease(k){return k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2}
   function money(v){return '$'+(v%1?v.toFixed(2):v.toFixed(0))}
   function lv(n){return LEVELS[n-1]}
   function lvTitle(n){return 'L'+n+' '+lv(n).tag}
@@ -88,10 +91,57 @@
   Object.keys(VL).forEach(function(v){
     var b=document.createElement('button');b.className='vbtn';b.type='button';b.textContent=VL[v];b.dataset.v=v;b.setAttribute('aria-pressed',v==='world'?'true':'false');
     b.addEventListener('click',function(){
-      svg.setAttribute('viewBox',VIEWS[v]);scale=parseFloat(VIEWS[v].split(' ')[2])/960;
-      [].forEach.call(vb.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});drawPins();
+      [].forEach.call(vb.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});zoomTo(v);
     });vb.appendChild(b);
   });
+  /* glide the map viewBox between regions; pins are redrawn each frame so they keep a constant on-screen size */
+  var curVB=VIEWS.world.split(' ').map(Number),vbRaf;
+  function setVB(c){curVB=c;svg.setAttribute('viewBox',c.map(function(n){return n.toFixed(2)}).join(' '));scale=c[2]/960;drawPins()}
+  function zoomTo(v){
+    var to=VIEWS[v].split(' ').map(Number),from=curVB.slice(),t0=performance.now();cancelAnimationFrame(vbRaf);
+    if(calm){setVB(to);return}
+    (function step(t){var k=Math.min(1,(t-t0)/600),e=ease(k);
+      setVB(from.map(function(f,i){return f+(to[i]-f)*e}));if(k<1)vbRaf=requestAnimationFrame(step)})(t0);
+  }
+  /* maximize: the live map moves into a modal card that zooms out from the panel (FLIP) and shrinks back on close */
+  var modal=document.getElementById('map-modal'),card=document.getElementById('mm-card'),frame=document.getElementById('mapframe'),
+      slot=document.getElementById('map-slot'),mmBody=document.getElementById('mm-body'),mmViews=document.getElementById('mm-views'),
+      mapPh=document.getElementById('map-ph'),maxBtn=document.getElementById('map-max'),mmLegend=document.getElementById('mm-legend'),closing=false;
+  function flip(from,to){
+    return 'translate('+(from.left-to.left)+'px,'+(from.top-to.top)+'px) scale('+(from.width/to.width)+','+(from.height/to.height)+')';
+  }
+  function buildModalLegend(){
+    mmLegend.textContent='';
+    ORDER.forEach(function(k){if(!on[k])return;
+      var b=document.createElement('button');b.type='button';b.dataset.k=k;var i=document.createElement('i');i.style.background=col(k);
+      b.appendChild(i);b.appendChild(document.createTextNode(SHORT[k]+' '));var sm=document.createElement('small');sm.textContent=DATA[k].length;b.appendChild(sm);
+      linkHover(b,k);b.addEventListener('click',function(){togglePin(k)});mmLegend.appendChild(b);
+    });
+  }
+  function openMap(){
+    if(modal.open)return;
+    var r0=frame.getBoundingClientRect();
+    buildModalLegend();mmBody.appendChild(frame);mmViews.appendChild(vb);
+    modal.showModal();
+    if(!calm){
+      card.style.transformOrigin='0 0';
+      card.animate([{transform:flip(r0,card.getBoundingClientRect()),opacity:.6},{transform:'none',opacity:1}],{duration:460,easing:'cubic-bezier(.2,.8,.2,1)'});
+    }
+    document.getElementById('map-close').focus();
+  }
+  function closeMap(){
+    if(!modal.open||closing)return;
+    var done=function(){slot.appendChild(frame);mapPh.insertBefore(vb,maxBtn);modal.classList.remove('closing');modal.close();closing=false;maxBtn.focus()};
+    if(calm){done();return}
+    closing=true;modal.classList.add('closing');
+    var to=slot.getBoundingClientRect();to={left:to.left,top:to.top,width:to.width||1,height:Math.max(to.height,frame.offsetHeight*.3)||1};
+    card.style.transformOrigin='0 0';
+    card.animate([{transform:'none',opacity:1},{transform:flip(to,card.getBoundingClientRect()),opacity:.4}],{duration:360,easing:'cubic-bezier(.4,0,.2,1)'}).onfinish=done;
+  }
+  maxBtn.addEventListener('click',openMap);
+  document.getElementById('map-close').addEventListener('click',closeMap);
+  modal.addEventListener('cancel',function(e){e.preventDefault();closeMap()});
+  modal.addEventListener('click',function(e){if(e.target===modal)closeMap()});
   function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e}
 
   /* ---- map ---- */
@@ -122,9 +172,12 @@
         else{c.setAttribute('fill',col(it.k));c.setAttribute('stroke','var(--sea)');c.setAttribute('stroke-width',(0.8*scale).toFixed(2))}
         a.appendChild(c);
       });
-      a.addEventListener('mouseenter',function(){show(grp);if(n===1)hoverOn(grp.items[0].k)});a.addEventListener('mouseleave',hoverOff);a.addEventListener('focus',function(){show(grp)});a.addEventListener('click',function(){show(grp)});
+      /* bring the hovered pin above its neighbours so the enlarged dot isn't covered */
+      a.addEventListener('mouseenter',function(){if(a!==pins.lastChild)pins.appendChild(a);show(grp);if(n===1)hoverOn(grp.items[0].k)});a.addEventListener('mouseleave',hoverOff);a.addEventListener('focus',function(){show(grp)});a.addEventListener('click',function(){show(grp)});
       pins.appendChild(a);
-      if(popPins&&!calm)enter(a,'pop',Math.min(pins.childNodes.length*6,420));
+      if(popPins&&!calm){enter(a,'pop',Math.min(pins.childNodes.length*6,420));
+        /* drop the entrance class once done, or its fill-mode would pin the scale and block the hover growth */
+        a.addEventListener('animationend',function(){a.classList.remove('pop')},{once:true})}
     });
     popPins=false;
     paintFocus();
@@ -133,11 +186,24 @@
   /* ---- chart: cheapest plan per provider at each level ---- */
   var chart=document.getElementById('chart'),legend=document.getElementById('legend'),tip=document.createElement('div');
   tip.className='tip';tip.hidden=true;chart.appendChild(tip);
+  var lastGeo=null;
   function drawChart(){
     var old=chart.querySelector('svg');if(old)chart.removeChild(old);
     tip.hidden=true;
+    var keys=ORDER.filter(function(k){return on[k]});
+    /* legend first: it can change the chart's height, which must be measured after it */
+    legend.textContent='';
+    keys.forEach(function(k){
+      var sp=document.createElement('button'),i=document.createElement('i');sp.type='button';sp.dataset.k=k;i.style.background=col(k);
+      sp.title='Hover to highlight, click to pin';
+      sp.appendChild(i);sp.appendChild(document.createTextNode(SHORT[k]));linkHover(sp,k);
+      sp.addEventListener('click',function(){togglePin(k)});legend.appendChild(sp);
+    });
+    var sp=document.createElement('span'),i=document.createElement('i');i.className='hollow';
+    sp.appendChild(i);sp.appendChild(document.createTextNode('Prepaid'));legend.appendChild(sp);
     var W=chart.clientWidth||600,H=chart.clientHeight||300,pad={l:40,r:30,t:8,b:24};
-    var iw=W-pad.l-pad.r,ih=H-pad.t-pad.b,keys=ORDER.filter(function(k){return on[k]});
+    lastW=chart.clientWidth;lastH=chart.clientHeight;/* so the resize observer skips this size */
+    var iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
     /* log scale: entry prices ($2.50-$10) would otherwise pile up at the bottom under $96 plans */
     var max=0,min=1e9;keys.forEach(function(k){for(var t=1;t<=5;t++){var p=cheapest(k,t);if(p){if(p.price>max)max=p.price;if(p.price<min)min=p.price}}});
     var TICKS=[1,2,5,10,20,50,100,200,500],lo=1,hi=10;
@@ -161,8 +227,11 @@
     var band=el('rect',{class:'band',x:x(level)-bw/2,y:pad.t,width:bw,height:ih,rx:4});s.appendChild(band);
     /* grid and y axis */
     var gg=el('g',{class:'grid'}),ax=el('g',{class:'axis'});
+    /* keep tick labels at least 14px apart; decades ($1, $10, $100) win when space is tight */
+    var shown=TICKS.filter(function(v){return v>=lo&&v<=hi}).sort(function(a,b){return (String(b).match(/^10*$/)?1:0)-(String(a).match(/^10*$/)?1:0)}),kept=[];
+    shown.forEach(function(v){if(kept.every(function(u){return Math.abs(y(u)-y(v))>=14}))kept.push(v)});
     TICKS.forEach(function(v){
-      if(v<lo||v>hi)return;var yy=y(v);
+      if(kept.indexOf(v)<0)return;var yy=y(v);
       gg.appendChild(el('line',{x1:pad.l,x2:W-pad.r,y1:yy,y2:yy}));
       var tx=el('text',{x:pad.l-8,y:yy+4,'text-anchor':'end'});tx.textContent='$'+v;ax.appendChild(tx);
     });
@@ -172,17 +241,17 @@
     });
     s.appendChild(gg);s.appendChild(ax);
     /* series */
-    var sg=el('g',{class:'series'+(drawIn&&!calm?' draw':'')});
+    var sg=el('g',{class:'series'+(drawIn&&!calm?' draw':'')}),anim=[],geo={W:W,H:H,lo:lo,hi:hi,pts:{}};
     keys.forEach(function(k){
-      var d='',pts=[];
-      for(var t=1;t<=5;t++){var p=cheapest(k,t);if(!p)continue;pts.push([t,p]);d+=(d?'L':'M')+px(k,t).toFixed(1)+','+y(p.price).toFixed(1)}
-      sg.appendChild(el('path',{d:d,stroke:col(k),'data-k':k,pathLength:1}));
+      var d='',pts=[],xy=[],cs=[];
+      for(var t=1;t<=5;t++){var p=cheapest(k,t);if(!p)continue;pts.push([t,p]);xy.push([px(k,t),y(p.price)]);d+=(d?'L':'M')+px(k,t).toFixed(1)+','+y(p.price).toFixed(1)}
+      var path=el('path',{d:d,stroke:col(k),'data-k':k,pathLength:1});sg.appendChild(path);geo.pts[k]=xy;anim.push({k:k,path:path,cs:cs,to:xy});
       pts.forEach(function(a){
         var t=a[0],p=a[1],c=el('circle',{cx:px(k,t).toFixed(1),cy:y(p.price).toFixed(1),r:t===level?5:4,'data-k':k,class:t===level?'sel':''});
         /* 2px surface ring keeps overlapping dots readable; prepay intro prices are hollow */
         if(p.prepay){c.setAttribute('fill','var(--bg)');c.setAttribute('stroke',col(k));c.setAttribute('stroke-width','2')}
         else{c.setAttribute('fill',col(k));c.setAttribute('stroke','var(--bg)');c.setAttribute('stroke-width','2')}
-        sg.appendChild(c);
+        sg.appendChild(c);cs.push(c);
       });
     });
     s.appendChild(sg);
@@ -213,17 +282,28 @@
       band.style.transition='none';band.style.transform='translateX('+(x(prevLevel)-x(level))+'px)';
       band.getBoundingClientRect();band.style.transition='';band.style.transform='';
     }
+    /* when providers change, lines glide from their old positions; newly shown providers draw in */
+    var prev=lastGeo;lastGeo=geo;
+    if(!drawIn&&!calm&&prev){
+      if(prev.lo!==lo||prev.hi!==hi){gg.classList.add('fade');ax.classList.add('fade')}
+      var moving=[];
+      anim.forEach(function(a){
+        var from=prev.pts[a.k];
+        if(!from){a.path.classList.add('draw');a.cs.forEach(function(c){c.classList.add('draw')})}
+        else if(from.length===a.to.length&&from.some(function(f,i){return Math.abs(f[1]-a.to[i][1])>.5||Math.abs(f[0]-a.to[i][0])>.5}))moving.push({a:a,from:from});
+      });
+      if(moving.length){
+        var t0=performance.now();
+        (function step(t){var k=Math.min(1,(t-t0)/600),e=ease(k);
+          moving.forEach(function(m){
+            var cur=m.a.to.map(function(p,i){return [m.from[i][0]+(p[0]-m.from[i][0])*e,m.from[i][1]+(p[1]-m.from[i][1])*e]});
+            m.a.path.setAttribute('d','M'+cur.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join('L'));
+            m.a.cs.forEach(function(c,i){c.setAttribute('cx',cur[i][0].toFixed(1));c.setAttribute('cy',cur[i][1].toFixed(1))});
+          });
+          if(k<1)requestAnimationFrame(step)})(t0);
+      }
+    }
     prevLevel=null;drawIn=false;
-    /* legend mirrors the mark: a line key per provider */
-    legend.textContent='';
-    keys.forEach(function(k){
-      var sp=document.createElement('button'),i=document.createElement('i');sp.type='button';sp.dataset.k=k;i.style.background=col(k);
-      sp.title='Hover to highlight, click to pin';
-      sp.appendChild(i);sp.appendChild(document.createTextNode(SHORT[k]));linkHover(sp,k);
-      sp.addEventListener('click',function(){togglePin(k)});legend.appendChild(sp);
-    });
-    var sp=document.createElement('span'),i=document.createElement('i');i.className='hollow';
-    sp.appendChild(i);sp.appendChild(document.createTextNode('Prepaid'));legend.appendChild(sp);
     paintFocus();
   }
   function showTip(t,px,W){
@@ -254,8 +334,14 @@
     (function step(t){var k=Math.min(1,(t-t0)/450),e=1-Math.pow(1-k,3);
       node.textContent=m[1]+(from+(to-from)*e).toFixed(dec)+m[3];if(k<1)requestAnimationFrame(step)})(t0);
   }
-  function tile(label,val,text){
+  function tile(label,val,text,k){
     var d=document.createElement('div');if(!calm)enter(d,'rise',insN++*45);
+    if(k){
+      d.dataset.k=k;d.style.setProperty('--c',col(k));d.tabIndex=0;d.setAttribute('role','button');
+      d.title=text+' (click to pin '+NAMES[k]+')';linkHover(d,k);
+      var act=function(){togglePin(k);if(!calm)enter(d,'ping',0)};
+      d.addEventListener('click',act);d.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();act()}});
+    }
     var b=document.createElement('dt');b.textContent=label;
     var v=document.createElement('dd');v.className='v';v.textContent=val;
     var p=document.createElement('dd');p.className='d';p.textContent=text;p.title=text;
@@ -269,22 +355,22 @@
     var L=tierPlans(level);
     if(!L.length){tile('No providers selected','–','Turn on at least one provider.');return}
     var low=minBy(L,function(p){return p.price});
-    tile('Lowest price',money(low.price),name(low)+', '+low.specs+(low.prepay?', prepaid':', monthly'));
+    tile('Lowest price',money(low.price),name(low)+', '+low.specs+(low.prepay?', prepaid':', monthly'),low.k);
     var mo=L.filter(function(p){return !p.prepay});
     if(low.prepay&&mo.length){
       var m=minBy(mo,function(p){return p.price});
-      tile('Lowest, no prepay',money(m.price),name(m)+', '+m.specs);
+      tile('Lowest, no prepay',money(m.price),name(m)+', '+m.specs,m.k);
     }
     var cpu=minBy(L,function(p){return p.price/p.cpu+p.price/1000});
-    tile('Most vCPU per dollar',money(cpu.price/cpu.cpu)+'/vCPU',name(cpu)+': '+cpu.cpu+' vCPU for '+money(cpu.price));
+    tile('Most vCPU per dollar',money(cpu.price/cpu.cpu)+'/vCPU',name(cpu)+': '+cpu.cpu+' vCPU for '+money(cpu.price),cpu.k);
     var big=BIG.filter(function(k){return on[k]}).map(function(k){return cheapest(k,level)}).filter(Boolean);
     var bud=BUDGET.filter(function(k){return on[k]}).map(function(k){return cheapest(k,level)}).filter(Boolean);
     if(big.length&&bud.length){
       var bl=minBy(big,function(p){return p.price}),ul=minBy(bud,function(p){return p.price}),x=bl.price/ul.price;
       if(x>=1.2)tile('Big cloud vs budget',(x>=1.95?Math.round(x)+'×':x.toFixed(1)+'×')+' gap',
-        'Vultr, DigitalOcean and Linode from '+money(bl.price)+'; Hetzner, Hostinger and OVH from '+money(ul.price)+'.');
+        'Vultr, DigitalOcean and Linode from '+money(bl.price)+'; Hetzner, Hostinger and OVH from '+money(ul.price)+'.',ul.k);
       else tile('Big cloud vs budget','No gap',
-        name(bl)+' ('+money(bl.price)+') undercuts them, but has '+bl.ram+' GB RAM vs '+ul.ram+' GB.');
+        name(bl)+' ('+money(bl.price)+') undercuts them, but has '+bl.ram+' GB RAM vs '+ul.ram+' GB.',bl.k);
     }
     var warn=[];
     L.forEach(function(p){if(p.renew&&p.k==='hostinger')warn.push('Hostinger renews at '+p.renew+'.')});
@@ -334,7 +420,7 @@
     drawChart();drawInsights();apply();paintFocus();
   }
   function sync(){
-    drawIn=true;
+    if(modal.open)buildModalLegend();
     [].forEach.call(pf.querySelectorAll('.pchip'),function(b){b.setAttribute('aria-pressed',on[b.dataset.k]?'true':'false')});
     info.hidden=true;
     popPins=true;drawPins();render();
