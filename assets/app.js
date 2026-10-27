@@ -178,6 +178,8 @@
   window.addEventListener('pointerup',function(){if(drag){drag=null;svg.classList.remove('dragging');setTimeout(function(){dragged=false},0)}});
   document.getElementById('map-close').addEventListener('click',closeMap);
   modal.addEventListener('cancel',function(e){e.preventDefault();closeMap()});
+  /* Esc exits the maximized map wherever focus is (map, dots, legend); capture phase so it runs before other Esc handlers */
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.open){e.preventDefault();e.stopImmediatePropagation();closeMap()}},true);
   modal.addEventListener('click',function(e){if(e.target===modal)closeMap()});
   function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e}
 
