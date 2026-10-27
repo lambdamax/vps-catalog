@@ -6,11 +6,11 @@
   var ORDER=['vultr','do','linode','hetzner','hostinger','ovh'];
   var BIG=['vultr','do','linode'],BUDGET=['hetzner','hostinger','ovh'];
   var LEVELS=[
-    {n:1,tag:'Entry',name:'Entry',use:'the cheapest plan each provider sells. Fine for tests, a static site or a small bot.'},
-    {n:2,tag:'2 GB+',name:'at least 2 GB RAM',use:'a small web app, WordPress or a few light containers.'},
-    {n:3,tag:'4 GB+',name:'at least 4 GB RAM',use:'an AI agent runtime, n8n, or an app with a small database.'},
-    {n:4,tag:'8 GB+',name:'at least 8 GB RAM',use:'several containers, a CI runner or a mid-size database.'},
-    {n:5,tag:'16 GB+',name:'at least 16 GB RAM',use:'many services on one box, larger databases or build servers.'}
+    {n:1,tag:'Entry',name:'Entry',use:'Cheapest plan per provider: tests, a static site or a small bot.'},
+    {n:2,tag:'2 GB+',name:'at least 2 GB RAM',use:'At least 2 GB RAM: a small web app, WordPress or light containers.'},
+    {n:3,tag:'4 GB+',name:'at least 4 GB RAM',use:'At least 4 GB RAM: an AI agent runtime, n8n or a small database.'},
+    {n:4,tag:'8 GB+',name:'at least 8 GB RAM',use:'At least 8 GB RAM: several containers, a CI runner or a mid-size database.'},
+    {n:5,tag:'16 GB+',name:'at least 16 GB RAM',use:'At least 16 GB RAM: many services, larger databases or build servers.'}
   ];
   var VL={world:'World',americas:'Americas',europe:'Europe',asia:'Asia-Pacific'};
   var on={};ORDER.forEach(function(k){on[k]=true});
@@ -21,9 +21,11 @@
   function col(k){return 'var(--c-'+k+')'}
   function money(v){return '$'+(v%1?v.toFixed(2):v.toFixed(0))}
   function lv(n){return LEVELS[n-1]}
-  function lvTitle(n){return 'Level '+n+', '+(n===1?'Entry':lv(n).name)}
+  function lvTitle(n){return 'L'+n+' '+lv(n).tag}
 
   /* plan data comes from the table rows, so the table stays the single source */
+  /* full text on hover where the compact layout truncates */
+  [].forEach.call(document.querySelectorAll('.price small'),function(s){s.title=s.textContent});
   var PLANS=rows.map(function(r){
     var d=r.dataset;
     return {tier:+d.tier,k:d.p,s:d.s,price:+d.price,cpu:+d.cpu,ram:+d.ram,prepay:d.prepay==='1',renew:d.renew||'',
@@ -83,7 +85,7 @@
   function show(g){
     var html='<b>'+g.items.length+' provider site'+(g.items.length>1?'s':'')+' here</b><br>';
     html+=g.items.map(function(i){return '<span class="dot" style="background:'+col(i.k)+'"></span>'+NAMES[i.k]+': '+i.n}).join('<br>');
-    info.innerHTML=html;
+    info.innerHTML=html;info.hidden=false;
   }
   function drawPins(){
     pins.textContent='';
@@ -110,7 +112,7 @@
   function drawChart(){
     var old=chart.querySelector('svg');if(old)chart.removeChild(old);
     tip.hidden=true;
-    var W=chart.clientWidth||600,H=chart.clientHeight||300,pad={l:44,r:34,t:10,b:30};
+    var W=chart.clientWidth||600,H=chart.clientHeight||300,pad={l:40,r:30,t:8,b:24};
     var iw=W-pad.l-pad.r,ih=H-pad.t-pad.b,keys=ORDER.filter(function(k){return on[k]});
     var max=0;keys.forEach(function(k){for(var t=1;t<=5;t++){var p=cheapest(k,t);if(p&&p.price>max)max=p.price}});
     max=niceMax(max||10);
@@ -128,7 +130,7 @@
       var tx=el('text',{x:pad.l-8,y:yy+4,'text-anchor':'end'});tx.textContent='$'+v;ax.appendChild(tx);
     }
     LEVELS.forEach(function(L){
-      var tx=el('text',{x:x(L.n),y:H-8,'text-anchor':'middle'});tx.textContent=iw<420?'L'+L.n:'L'+L.n+' '+L.tag;
+      var tx=el('text',{x:x(L.n),y:H-6,'text-anchor':'middle'});tx.textContent=iw<380?'L'+L.n:'L'+L.n+' '+L.tag;
       if(L.n===level)tx.setAttribute('class','sel');ax.appendChild(tx);
     });
     s.appendChild(gg);s.appendChild(ax);
@@ -190,10 +192,10 @@
   /* ---- insights for the selected level ---- */
   var ins=document.getElementById('ins'),insTitle=document.getElementById('ins-title');
   function tile(label,val,text){
-    var d=document.createElement('div');d.className='tile';
-    var b=document.createElement('b');b.textContent=label;
-    var v=document.createElement('span');v.className='val';v.textContent=val;
-    var p=document.createElement('p');p.textContent=text;
+    var d=document.createElement('div');
+    var b=document.createElement('dt');b.textContent=label;
+    var v=document.createElement('dd');v.className='v';v.textContent=val;
+    var p=document.createElement('dd');p.className='d';p.textContent=text;p.title=text;
     d.appendChild(b);d.appendChild(v);d.appendChild(p);ins.appendChild(d);
   }
   function name(p){return p.plan.indexOf(SHORT[p.k])===0?p.plan:SHORT[p.k]+' '+p.plan}
@@ -202,29 +204,29 @@
     insTitle.textContent='Insights · '+lvTitle(level);
     ins.textContent='';
     var L=tierPlans(level);
-    if(!L.length){tile('No providers selected','–','Turn on at least one provider above.');return}
+    if(!L.length){tile('No providers selected','–','Turn on at least one provider.');return}
     var low=minBy(L,function(p){return p.price});
-    tile('Lowest price',money(low.price),name(low)+', '+low.specs+(low.prepay?', with a prepay.':', paid monthly.'));
+    tile('Lowest price',money(low.price),name(low)+', '+low.specs+(low.prepay?', prepaid':', monthly'));
     var mo=L.filter(function(p){return !p.prepay});
     if(low.prepay&&mo.length){
       var m=minBy(mo,function(p){return p.price});
-      tile('Lowest without a prepay',money(m.price),name(m)+', '+m.specs+', billed monthly or hourly.');
+      tile('Lowest, no prepay',money(m.price),name(m)+', '+m.specs);
     }
     var cpu=minBy(L,function(p){return p.price/p.cpu+p.price/1000});
-    tile('Most vCPU per dollar',money(cpu.price/cpu.cpu)+' per vCPU',name(cpu)+': '+cpu.cpu+' vCPU for '+money(cpu.price)+'.');
+    tile('Most vCPU per dollar',money(cpu.price/cpu.cpu)+'/vCPU',name(cpu)+': '+cpu.cpu+' vCPU for '+money(cpu.price));
     var big=BIG.filter(function(k){return on[k]}).map(function(k){return cheapest(k,level)}).filter(Boolean);
     var bud=BUDGET.filter(function(k){return on[k]}).map(function(k){return cheapest(k,level)}).filter(Boolean);
     if(big.length&&bud.length){
       var bl=minBy(big,function(p){return p.price}),ul=minBy(bud,function(p){return p.price}),x=bl.price/ul.price;
-      if(x>=1.2)tile('Big cloud vs budget hosts',(x>=1.95?Math.round(x)+'×':x.toFixed(1)+'×')+' price gap',
-        'The cheapest of Vultr, DigitalOcean and Linode is '+money(bl.price)+'. Hetzner, Hostinger and OVH start at '+money(ul.price)+' here.');
-      else tile('Big cloud vs budget hosts','No gap',
-        name(bl)+' at '+money(bl.price)+' undercuts the budget hosts ('+money(ul.price)+'), but with only '+bl.ram+' GB RAM against '+ul.ram+' GB.');
+      if(x>=1.2)tile('Big cloud vs budget',(x>=1.95?Math.round(x)+'×':x.toFixed(1)+'×')+' gap',
+        'Vultr, DigitalOcean and Linode from '+money(bl.price)+'; Hetzner, Hostinger and OVH from '+money(ul.price)+'.');
+      else tile('Big cloud vs budget','No gap',
+        name(bl)+' ('+money(bl.price)+') undercuts them, but has '+bl.ram+' GB RAM vs '+ul.ram+' GB.');
     }
     var warn=[];
-    L.forEach(function(p){if(p.renew&&p.k==='hostinger')warn.push('Hostinger '+p.plan+' renews at '+p.renew+' after the 24-month term.')});
-    if(on.ovh&&L.some(function(p){return p.k==='ovh'}))warn.push('OVH prices assume 12 months upfront; renewal is reported near double.');
-    if(on.hetzner&&L.some(function(p){return p.k==='hetzner'}))warn.push('Hetzner listed its CX plans as currently unavailable on Oct 27, 2026.');
+    L.forEach(function(p){if(p.renew&&p.k==='hostinger')warn.push('Hostinger renews at '+p.renew+'.')});
+    if(on.ovh&&L.some(function(p){return p.k==='ovh'}))warn.push('OVH needs 12 months upfront.');
+    if(on.hetzner&&L.some(function(p){return p.k==='hetzner'}))warn.push('Hetzner CX listed as unavailable (Oct 27).');
     if(warn.length)tile('Watch out',warn.length+' caveat'+(warn.length>1?'s':''),warn.join(' '));
   }
 
@@ -242,19 +244,21 @@
 
   function render(){
     [].forEach.call(lvBox.querySelectorAll('.lvbtn'),function(b){b.setAttribute('aria-pressed',+b.dataset.n===level?'true':'false')});
-    document.getElementById('use').textContent=lvTitle(level)+': '+lv(level).use.charAt(0).toUpperCase()+lv(level).use.slice(1);
+    document.getElementById('use').textContent=lv(level).use;
     drawChart();drawInsights();apply();
   }
   function sync(){
     [].forEach.call(pf.querySelectorAll('.pchip'),function(b){b.setAttribute('aria-pressed',on[b.dataset.k]?'true':'false')});
-    info.textContent='Select a pin to see which providers have a server there, or hover over it.';
+    info.hidden=true;
     drawPins();render();
   }
   chips.forEach(function(c){c.addEventListener('click',function(){
     f=c.dataset.f;chips.forEach(function(x){x.setAttribute('aria-pressed',x===c?'true':'false')});apply();
   })});
   q.addEventListener('input',apply);
-  var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(drawChart,120)});
+  var rt,lastW=0,lastH=0;
+  function resized(){if(chart.clientWidth===lastW&&chart.clientHeight===lastH)return;lastW=chart.clientWidth;lastH=chart.clientHeight;clearTimeout(rt);rt=setTimeout(drawChart,80)}
+  if(window.ResizeObserver)new ResizeObserver(resized).observe(chart);else window.addEventListener('resize',resized);
   drawPins();render();
 
   /* theme toggle: auto -> light -> dark */

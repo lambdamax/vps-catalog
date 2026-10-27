@@ -13,218 +13,210 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Sora:wght@600&display=swap">
 <link rel="stylesheet" href="assets/style.css">
-<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<script>document.documentElement.className='js';try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body>
 <div class="wrap">
-  <header class="top"><div>
-  <h1>VPS Provider Comparison</h1>
-  <p class="sub">Six VPS providers compared at five levels, from each one's cheapest plan up to 16 GB of RAM. Prices are in USD per month. Pick a level to update the chart, insights and table. Updated Oct 27, 2026.</p></div>
-  <button class="vbtn theme" id="theme" type="button" aria-label="Colour theme">Theme: auto</button>
-  </header>
-
-  <div class="filters">
-    <div class="levels" id="levels" role="group" aria-label="Choose a level">
-      <span class="lbl">Level</span>
-    </div>
-    <div class="pfilter" id="pf" role="group" aria-label="Choose providers">
-      <span class="lbl">Providers</span>
-    </div>
-    <p class="use" id="use">Level 1, Entry: the cheapest plan each provider sells. Fine for tests, a static site or a small bot.</p>
-  </div>
-
-  <noscript><p>The chart, map and filters need JavaScript. The price table below lists every level and works without it.</p></noscript>
-
-  <section class="overview" aria-label="Overview">
-    <div class="card chartcard">
-      <h2>Lowest price at each level</h2>
-      <p class="cap">Each line is a provider's cheapest plan that meets the level. A hollow dot means a prepaid intro price. DigitalOcean and Linode charge the same from level 2 up, so the Linode line covers DigitalOcean's.</p>
-      <div class="chart" id="chart"></div>
-      <div class="legend" id="legend"></div>
-    </div>
-
-    <aside class="card insights" aria-live="polite">
-      <h2 id="ins-title">Insights · Level 1, Entry</h2>
-      <div id="ins">
-        <div class="tile"><b>Lowest price</b><span class="val">$2.50</span><p>Vultr Regular, but only 0.5 GB RAM.</p></div>
-        <div class="tile"><b>Most RAM per dollar</b><span class="val">4 GB</span><p>Hostinger KVM 1 and Hetzner CX23 at $6.49. OVH VPS-1 has 4 GB from $4.54 on prepay.</p></div>
-        <div class="tile"><b>Fixed price, no promo</b><span class="val">$4–$6</span><p>Linode $5, Vultr $6, DigitalOcean $4 and $6.</p></div>
-        <div class="tile"><b>Watch the renewal</b><span class="val">$11.99</span><p>Hostinger rises from $6.49 to $11.99. OVH renewal is reported near double.</p></div>
-      </div>
-    </aside>
-
-    <div class="card mapcard">
-      <h2>Where each provider runs servers</h2>
-      <div class="mapframe"><svg id="map" viewBox="0 0 960 500" role="img" aria-label="World map of VPS data center locations by provider"><path class="land" id="land"/><g id="pins"></g></svg></div>
-      <div class="views" id="views" role="group" aria-label="Map region"></div>
-      <div class="info" id="info">Select a pin to see which providers have a server there, or hover over it.</div>
-      <p class="key">Filled dot: city confirmed. Ring: the provider lists only the country (or the city is unconfirmed), so the dot sits at the country centre. Hetzner's CX plans run only in Germany and Finland; its US and Singapore sites offer AMD plans at higher prices.</p>
-    </div>
-  </section>
-
-  <h2 class="tblhead" id="tbl-title">Plans</h2>
-  <div class="controls">
-    <button class="chip" data-f="all" aria-pressed="true">All storage</button>
-    <button class="chip" data-f="nvme" aria-pressed="false">NVMe only</button>
-    <button class="chip" data-f="ssd" aria-pressed="false">SSD only</button>
-    <input id="q" type="search" placeholder="Filter by provider or plan" aria-label="Filter by provider or plan">
-  </div>
-
-  <div class="scroll">
-    <table id="t">
-      <thead><tr><th>Level</th><th>Provider</th><th>Price (USD/mo)</th><th>vCPU / RAM / Storage</th><th>Bandwidth</th><th>Notes</th></tr></thead>
-      <tbody>
-        <tr data-tier="1" data-s="ssd" data-p="vultr" data-price="2.50" data-cpu="1" data-ram="0.5" data-prepay="0"><td><span class="lvl">L1</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance</span></td>
-          <td class="price">$2.50<small>$3.50 IPv6-only is not cheaper</small></td>
-          <td class="specs">1 vCPU / 0.5 GB / 10 GB<span class="tag ssd">SSD</span></td><td>0.5 TB</td>
-          <td class="note">Cheapest SSD plan here. Too small for most agent workloads.</td></tr>
-        <tr data-tier="1" data-s="ssd" data-p="do" data-price="4.00" data-cpu="1" data-ram="0.5" data-prepay="0"><td><span class="lvl">L1</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet</span></td>
-          <td class="price">$4.00<small>$0.00595/hr</small></td>
-          <td class="specs">1 vCPU / 512 MiB / 10 GiB<span class="tag ssd">SSD</span></td><td>500 GiB</td>
-          <td class="note">Next step up is $6 for 1 GiB RAM / 25 GiB SSD / 1 TB.</td></tr>
-        <tr data-tier="1" data-s="nvme" data-p="ovh" data-price="4.54" data-cpu="2" data-ram="4" data-prepay="1"><td><span class="lvl">L1</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-1</span></td>
-          <td class="price">from $4.54<small>12-month prepay; month-to-month USD rate not confirmed</small></td>
-          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
-          <td class="note">Best specs for the price if you prepay. Daily backup and anti-DDoS included. Renewal is reported to be about double.</td></tr>
-        <tr data-tier="1" data-s="ssd" data-p="linode" data-price="5.00" data-cpu="1" data-ram="1" data-prepay="0"><td><span class="lvl">L1</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Nanode 1 GB</span></td>
-          <td class="price">$5.00</td>
-          <td class="specs">1 vCPU / 1 GB / 25 GB<span class="tag ssd">SSD</span></td><td>1 TB</td>
-          <td class="note">Fixed monthly price, no intro rate. Overage $0.005/GB.</td></tr>
-        <tr data-tier="1" data-s="nvme" data-p="vultr" data-price="6.00" data-cpu="1" data-ram="1" data-prepay="0"><td><span class="lvl">L1</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance (AMD / Intel)</span></td>
-          <td class="price">$6.00</td>
-          <td class="specs">1 vCPU / 1 GB / 25 GB<span class="tag nvme">NVMe</span></td><td>2 TB</td>
-          <td class="note">32+ locations. High Frequency Intel is $6 with 32 GB NVMe and 1 TB.</td></tr>
-        <tr data-tier="1" data-s="nvme" data-p="hetzner" data-price="6.49" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L1</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX23 (shared x86)</span></td>
-          <td class="price">$6.49<small>CAX11 Arm: $6.99 · CX33 4 vCPU/8 GB: $9.99</small></td>
-          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
-          <td class="note">Best CPU and RAM per dollar. CX23 is EU only (Falkenstein, Nuremberg, Helsinki). US and Singapore sites offer only AMD plans, from about $18 to $20. Stock is limited and prices rose in April and June 2026. Excludes VAT and IPv4.</td></tr>
-        <tr data-tier="1" data-s="nvme" data-p="hostinger" data-price="6.49" data-cpu="1" data-ram="4" data-prepay="1" data-renew="$11.99"><td><span class="lvl">L1</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 1</span></td>
-          <td class="price">$6.49<small>24-month prepay, renews at $11.99</small></td>
-          <td class="specs">1 vCPU / 4 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>4 TB</td>
-          <td class="note">Black Friday intro price. KVM 2 (2 vCPU / 8 GB / 100 GB / 8 TB) is $8.79, renews at $14.99. 10 locations. Month-to-month costs far more.</td></tr>
-        <tr data-tier="2" data-s="nvme" data-p="ovh" data-price="4.54" data-cpu="2" data-ram="4" data-prepay="1"><td><span class="lvl">L2</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-1</span></td>
-          <td class="price">from $4.54<small>12-month prepay</small></td>
-          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
-          <td class="note">Smallest OVH plan already has 4 GB.</td></tr>
-        <tr data-tier="2" data-s="nvme" data-p="hetzner" data-price="6.49" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L2</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX23 (shared x86)</span></td>
-          <td class="price">$6.49<small>excl. VAT</small></td>
-          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
-          <td class="note">Smallest Hetzner x86 plan already has 4 GB. EU only.</td></tr>
-        <tr data-tier="2" data-s="nvme" data-p="hostinger" data-price="6.49" data-cpu="1" data-ram="4" data-prepay="1" data-renew="$11.99"><td><span class="lvl">L2</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 1</span></td>
-          <td class="price">$6.49<small>24-month prepay, renews at $11.99</small></td>
-          <td class="specs">1 vCPU / 4 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>4 TB</td>
-          <td class="note">Smallest Hostinger plan already has 4 GB.</td></tr>
-        <tr data-tier="2" data-s="ssd" data-p="vultr" data-price="10.00" data-cpu="1" data-ram="2" data-prepay="0"><td><span class="lvl">L2</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 2 GB</span></td>
-          <td class="price">$10.00</td>
-          <td class="specs">1 vCPU / 2 GB / 55 GB<span class="tag ssd">SSD</span></td><td>2 TB</td>
-          <td class="note">Previous-generation Intel CPUs.</td></tr>
-        <tr data-tier="2" data-s="nvme" data-p="vultr" data-price="12.00" data-cpu="1" data-ram="2" data-prepay="0"><td><span class="lvl">L2</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 2 GB</span></td>
-          <td class="price">$12.00</td>
-          <td class="specs">1 vCPU / 2 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>3 TB</td>
-          <td class="note">Newer AMD or Intel CPUs. 2 vCPU / 2 GB is $18.</td></tr>
-        <tr data-tier="2" data-s="ssd" data-p="do" data-price="12.00" data-cpu="1" data-ram="2" data-prepay="0"><td><span class="lvl">L2</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 2 GiB</span></td>
-          <td class="price">$12.00<small>$0.01786/hr</small></td>
-          <td class="specs">1 vCPU / 2 GiB / 50 GiB<span class="tag ssd">SSD</span></td><td>2 TB</td>
-          <td class="note">2 vCPU / 2 GiB / 60 GiB / 3 TB is $18.</td></tr>
-        <tr data-tier="2" data-s="ssd" data-p="linode" data-price="12.00" data-cpu="1" data-ram="2" data-prepay="0"><td><span class="lvl">L2</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 2 GB</span></td>
-          <td class="price">$12.00</td>
-          <td class="specs">1 vCPU / 2 GB / 50 GB<span class="tag ssd">SSD</span></td><td>2 TB</td>
-          <td class="note">Same price as DigitalOcean and Vultr High Performance.</td></tr>
-        <tr data-tier="3" data-s="nvme" data-p="ovh" data-price="4.54" data-cpu="2" data-ram="4" data-prepay="1"><td><span class="lvl">L3</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-1</span></td>
-          <td class="price">from $4.54<small>12-month prepay</small></td>
-          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
-          <td class="note">Cheapest 4 GB here, with unlimited traffic at 500 Mbps.</td></tr>
-        <tr data-tier="3" data-s="nvme" data-p="hetzner" data-price="6.49" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L3</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX23 (shared x86)</span></td>
-          <td class="price">$6.49<small>excl. VAT</small></td>
-          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
-          <td class="note">Cheapest 4 GB without a prepay. EU only.</td></tr>
-        <tr data-tier="3" data-s="nvme" data-p="hostinger" data-price="6.49" data-cpu="1" data-ram="4" data-prepay="1" data-renew="$11.99"><td><span class="lvl">L3</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 1</span></td>
-          <td class="price">$6.49<small>24-month prepay, renews at $11.99</small></td>
-          <td class="specs">1 vCPU / 4 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>4 TB</td>
-          <td class="note">Only 1 vCPU at this level.</td></tr>
-        <tr data-tier="3" data-s="ssd" data-p="vultr" data-price="20.00" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L3</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 4 GB</span></td>
-          <td class="price">$20.00</td>
-          <td class="specs">2 vCPU / 4 GB / 80 GB<span class="tag ssd">SSD</span></td><td>3 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="3" data-s="nvme" data-p="vultr" data-price="24.00" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L3</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 4 GB</span></td>
-          <td class="price">$24.00</td>
-          <td class="specs">2 vCPU / 4 GB / 100 GB<span class="tag nvme">NVMe</span></td><td>5 TB</td>
-          <td class="note">Most transfer of the big-cloud 4 GB plans.</td></tr>
-        <tr data-tier="3" data-s="ssd" data-p="do" data-price="24.00" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L3</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 4 GiB</span></td>
-          <td class="price">$24.00<small>$0.03571/hr</small></td>
-          <td class="specs">2 vCPU / 4 GiB / 80 GiB<span class="tag ssd">SSD</span></td><td>4 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="3" data-s="ssd" data-p="linode" data-price="24.00" data-cpu="2" data-ram="4" data-prepay="0"><td><span class="lvl">L3</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 4 GB</span></td>
-          <td class="price">$24.00</td>
-          <td class="specs">2 vCPU / 4 GB / 80 GB<span class="tag ssd">SSD</span></td><td>4 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="4" data-s="nvme" data-p="ovh" data-price="8.50" data-cpu="4" data-ram="8" data-prepay="1"><td><span class="lvl">L4</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-2</span></td>
-          <td class="price">from $8.50<small>12-month prepay</small></td>
-          <td class="specs">4 vCPU / 8 GB / 75 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
-          <td class="note">1 Gbps port.</td></tr>
-        <tr data-tier="4" data-s="nvme" data-p="hostinger" data-price="8.79" data-cpu="2" data-ram="8" data-prepay="1" data-renew="$14.99"><td><span class="lvl">L4</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 2</span></td>
-          <td class="price">$8.79<small>24-month prepay, renews at $14.99</small></td>
-          <td class="specs">2 vCPU / 8 GB / 100 GB<span class="tag nvme">NVMe</span></td><td>8 TB</td>
-          <td class="note">Most storage per dollar at this level.</td></tr>
-        <tr data-tier="4" data-s="nvme" data-p="hetzner" data-price="9.99" data-cpu="4" data-ram="8" data-prepay="0"><td><span class="lvl">L4</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX33 (shared x86)</span></td>
-          <td class="price">$9.99<small>excl. VAT · CAX21 Arm: $12.49</small></td>
-          <td class="specs">4 vCPU / 8 GB / 80 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
-          <td class="note">Cheapest 8 GB without a prepay. EU only.</td></tr>
-        <tr data-tier="4" data-s="ssd" data-p="vultr" data-price="40.00" data-cpu="4" data-ram="8" data-prepay="0"><td><span class="lvl">L4</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 8 GB</span></td>
-          <td class="price">$40.00</td>
-          <td class="specs">4 vCPU / 8 GB / 160 GB<span class="tag ssd">SSD</span></td><td>4 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="4" data-s="nvme" data-p="vultr" data-price="48.00" data-cpu="4" data-ram="8" data-prepay="0"><td><span class="lvl">L4</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 8 GB</span></td>
-          <td class="price">$48.00</td>
-          <td class="specs">4 vCPU / 8 GB / 180 GB<span class="tag nvme">NVMe</span></td><td>6 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="4" data-s="ssd" data-p="do" data-price="48.00" data-cpu="4" data-ram="8" data-prepay="0"><td><span class="lvl">L4</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 8 GiB</span></td>
-          <td class="price">$48.00<small>$0.07143/hr</small></td>
-          <td class="specs">4 vCPU / 8 GiB / 160 GiB<span class="tag ssd">SSD</span></td><td>5 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="4" data-s="ssd" data-p="linode" data-price="48.00" data-cpu="4" data-ram="8" data-prepay="0"><td><span class="lvl">L4</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 8 GB</span></td>
-          <td class="price">$48.00</td>
-          <td class="specs">4 vCPU / 8 GB / 160 GB<span class="tag ssd">SSD</span></td><td>5 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="5" data-s="nvme" data-p="hostinger" data-price="12.99" data-cpu="4" data-ram="16" data-prepay="1" data-renew="$28.99"><td><span class="lvl">L5</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 4</span></td>
-          <td class="price">$12.99<small>24-month prepay, renews at $28.99</small></td>
-          <td class="specs">4 vCPU / 16 GB / 200 GB<span class="tag nvme">NVMe</span></td><td>16 TB</td>
-          <td class="note">Cheapest 16 GB, but more than doubles at renewal.</td></tr>
-        <tr data-tier="5" data-s="nvme" data-p="hetzner" data-price="18.49" data-cpu="8" data-ram="16" data-prepay="0"><td><span class="lvl">L5</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX43 (shared x86)</span></td>
-          <td class="price">$18.49<small>excl. VAT · CAX31 Arm: $24.99</small></td>
-          <td class="specs">8 vCPU / 16 GB / 160 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
-          <td class="note">Most vCPU per dollar at this level, with no prepay. EU only.</td></tr>
-        <tr data-tier="5" data-s="nvme" data-p="ovh" data-price="23.37" data-cpu="8" data-ram="24" data-prepay="1"><td><span class="lvl">L5</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-4</span></td>
-          <td class="price">from $23.37<small>12-month prepay</small></td>
-          <td class="specs">8 vCPU / 24 GB / 200 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
-          <td class="note">VPS-3 has only 12 GB ($12.32), so VPS-4 is the first OVH plan with 16 GB or more.</td></tr>
-        <tr data-tier="5" data-s="ssd" data-p="vultr" data-price="80.00" data-cpu="6" data-ram="16" data-prepay="0"><td><span class="lvl">L5</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 16 GB</span></td>
-          <td class="price">$80.00</td>
-          <td class="specs">6 vCPU / 16 GB / 320 GB<span class="tag ssd">SSD</span></td><td>5 TB</td>
-          <td class="note">Some trackers list 6 TB.</td></tr>
-        <tr data-tier="5" data-s="nvme" data-p="vultr" data-price="96.00" data-cpu="8" data-ram="16" data-prepay="0"><td><span class="lvl">L5</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 16 GB</span></td>
-          <td class="price">$96.00</td>
-          <td class="specs">8 vCPU / 16 GB / 350 GB<span class="tag nvme">NVMe</span></td><td>8 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="5" data-s="ssd" data-p="do" data-price="96.00" data-cpu="8" data-ram="16" data-prepay="0"><td><span class="lvl">L5</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 16 GiB</span></td>
-          <td class="price">$96.00<small>$0.14286/hr</small></td>
-          <td class="specs">8 vCPU / 16 GiB / 320 GiB<span class="tag ssd">SSD</span></td><td>6 TB</td>
-          <td class="note"></td></tr>
-        <tr data-tier="5" data-s="ssd" data-p="linode" data-price="96.00" data-cpu="6" data-ram="16" data-prepay="0"><td><span class="lvl">L5</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 16 GB</span></td>
-          <td class="price">$96.00</td>
-          <td class="specs">6 vCPU / 16 GB / 320 GB<span class="tag ssd">SSD</span></td><td>8 TB</td>
-          <td class="note"></td></tr>
-      </tbody>
-    </table>
-    <div class="empty" id="empty" hidden>No plans match the current filter.</div>
-  </div>
-
-  <div class="foot">
+  <header class="bar">
+    <h1>VPS Provider Comparison</h1>
+    <span class="meta">USD per month · updated Oct 27, 2026</span>
+    <div class="levels" id="levels" role="group" aria-label="Choose a level"><span class="lbl">Level</span></div>
+    <div class="end">
+      <details class="about"><summary>Notes &amp; sources</summary><div class="pop">
     <p>Levels: 1 is each provider's cheapest plan. Levels 2 to 5 show the cheapest plan with at least 2, 4, 8 or 16 GB of RAM. When a provider's smallest plan already exceeds a level, the same plan appears again.</p>
     <p>Excluded: Fly.io and Railway (metered billing, no fixed specs). DigitalOcean Premium NVMe Droplets start at $7 (AMD) and $8 (Intel) for 1 GiB, but full specs were not confirmed, so they are not listed. DigitalOcean figures are Basic Regular (SSD) Droplets.</p>
     <p>Hetzner prices are the USD new-order prices from its June 15, 2026 price adjustment, for EU locations, excluding VAT and IPv4. On Oct 27, 2026, Hetzner's site showed the CX and CAX plans as currently unavailable to order, so check stock first. Hostinger prices need a 24-month prepay. OVH prices assume 12 months paid upfront; confirm on the OVHcloud VPS page before ordering. Vultr blocks automated checks of its pricing page, so Vultr figures for levels 2 to 5 come from third-party price trackers.</p>
     <p>Sources: Hetzner price adjustment and cloud pages, Akamai (Linode) CPU pricing, DigitalOcean Droplet pricing, Hostinger VPS, OVHcloud US VPS, plus third-party trackers for Vultr.</p>
-  </div>
+      </div></details>
+      <button class="tbtn" id="theme" type="button" aria-label="Colour theme">Theme: auto</button>
+    </div>
+  </header>
+
+  <div class="pfilter" id="pf" role="group" aria-label="Choose providers"><span class="lbl">Providers</span></div>
+  <noscript><p>The chart, map and filters need JavaScript. The table below lists every level and works without it.</p></noscript>
+
+  <section class="overview" aria-label="Overview">
+    <div class="pane chartpane">
+      <div class="ph"><h2>Lowest price by level</h2></div>
+      <div class="chart" id="chart"></div>
+      <div class="legend" id="legend"></div>
+      <p class="cap">Hollow dot: prepaid intro price. From L2 up, DigitalOcean and Linode cost the same, so Linode's line hides DigitalOcean's.</p>
+    </div>
+
+    <div class="pane inspane" aria-live="polite">
+      <div class="ph"><h2 id="ins-title">Insights · L1 Entry</h2></div>
+      <dl class="ins" id="ins">
+        <div><dt>Lowest price</dt><dd class="v">$2.50</dd><dd class="d">Vultr Regular Performance, but only 0.5 GB RAM.</dd></div>
+        <div><dt>Most RAM per dollar</dt><dd class="v">4 GB</dd><dd class="d">Hostinger KVM 1 and Hetzner CX23 at $6.49; OVH VPS-1 from $4.54 on prepay.</dd></div>
+        <div><dt>Watch the renewal</dt><dd class="v">$11.99</dd><dd class="d">Hostinger rises from $6.49 to $11.99. OVH renewal is reported near double.</dd></div>
+      </dl>
+    </div>
+
+    <div class="pane mappane">
+      <div class="ph"><h2>Data centers</h2><div class="views" id="views" role="group" aria-label="Map region"></div></div>
+      <div class="mapframe"><svg id="map" viewBox="0 0 960 500" role="img" aria-label="World map of VPS data center locations by provider"><path class="land" id="land"/><g id="pins"></g></svg><div class="info" id="info" hidden></div></div>
+      <p class="key">Dot: city confirmed. Ring: country only, placed at its centre. Hetzner CX plans run only in Germany and Finland.</p>
+    </div>
+  </section>
+
+  <section class="tablepane" aria-label="Plans">
+    <div class="ph"><h2 id="tbl-title">Plans</h2><p class="use" id="use">Cheapest plan per provider: tests, a static site or a small bot.</p>
+      <div class="controls">
+        <button class="chip" data-f="all" aria-pressed="true">All storage</button>
+        <button class="chip" data-f="nvme" aria-pressed="false">NVMe</button>
+        <button class="chip" data-f="ssd" aria-pressed="false">SSD</button>
+        <input id="q" type="search" placeholder="Filter by provider or plan" aria-label="Filter by provider or plan">
+      </div>
+    </div>
+    <div class="scroll">
+      <table id="t">
+        <thead><tr><th class="lvlc">Level</th><th>Provider</th><th>Price (USD/mo)</th><th>vCPU / RAM / Storage</th><th>Bandwidth</th><th>Notes</th></tr></thead>
+        <tbody>
+        <tr data-tier="1" data-s="ssd" data-p="vultr" data-price="2.50" data-cpu="1" data-ram="0.5" data-prepay="0"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance</span></td>
+          <td class="price">$2.50<small>$3.50 IPv6-only is not cheaper</small></td>
+          <td class="specs">1 vCPU / 0.5 GB / 10 GB<span class="tag ssd">SSD</span></td><td>0.5 TB</td>
+          <td class="note"><div title="Cheapest SSD plan here. Too small for most agent workloads.">Cheapest SSD plan here. Too small for most agent workloads.</div></td></tr>
+        <tr data-tier="1" data-s="ssd" data-p="do" data-price="4.00" data-cpu="1" data-ram="0.5" data-prepay="0"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet</span></td>
+          <td class="price">$4.00<small>$0.00595/hr</small></td>
+          <td class="specs">1 vCPU / 512 MiB / 10 GiB<span class="tag ssd">SSD</span></td><td>500 GiB</td>
+          <td class="note"><div title="Next step up is $6 for 1 GiB RAM / 25 GiB SSD / 1 TB.">Next step up is $6 for 1 GiB RAM / 25 GiB SSD / 1 TB.</div></td></tr>
+        <tr data-tier="1" data-s="nvme" data-p="ovh" data-price="4.54" data-cpu="2" data-ram="4" data-prepay="1"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-1</span></td>
+          <td class="price">from $4.54<small>12-month prepay; month-to-month USD rate not confirmed</small></td>
+          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
+          <td class="note"><div title="Best specs for the price if you prepay. Daily backup and anti-DDoS included. Renewal is reported to be about double.">Best specs for the price if you prepay. Daily backup and anti-DDoS included. Renewal is reported to be about double.</div></td></tr>
+        <tr data-tier="1" data-s="ssd" data-p="linode" data-price="5.00" data-cpu="1" data-ram="1" data-prepay="0"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Nanode 1 GB</span></td>
+          <td class="price">$5.00</td>
+          <td class="specs">1 vCPU / 1 GB / 25 GB<span class="tag ssd">SSD</span></td><td>1 TB</td>
+          <td class="note"><div title="Fixed monthly price, no intro rate. Overage $0.005/GB.">Fixed monthly price, no intro rate. Overage $0.005/GB.</div></td></tr>
+        <tr data-tier="1" data-s="nvme" data-p="vultr" data-price="6.00" data-cpu="1" data-ram="1" data-prepay="0"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance (AMD / Intel)</span></td>
+          <td class="price">$6.00</td>
+          <td class="specs">1 vCPU / 1 GB / 25 GB<span class="tag nvme">NVMe</span></td><td>2 TB</td>
+          <td class="note"><div title="32+ locations. High Frequency Intel is $6 with 32 GB NVMe and 1 TB.">32+ locations. High Frequency Intel is $6 with 32 GB NVMe and 1 TB.</div></td></tr>
+        <tr data-tier="1" data-s="nvme" data-p="hetzner" data-price="6.49" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX23 (shared x86)</span></td>
+          <td class="price">$6.49<small>CAX11 Arm: $6.99 · CX33 4 vCPU/8 GB: $9.99</small></td>
+          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
+          <td class="note"><div title="Best CPU and RAM per dollar. CX23 is EU only (Falkenstein, Nuremberg, Helsinki). US and Singapore sites offer only AMD plans, from about $18 to $20. Stock is limited and prices rose in April and June 2026. Excludes VAT and IPv4.">Best CPU and RAM per dollar. CX23 is EU only (Falkenstein, Nuremberg, Helsinki). US and Singapore sites offer only AMD plans, from about $18 to $20. Stock is limited and prices rose in April and June 2026. Excludes VAT and IPv4.</div></td></tr>
+        <tr data-tier="1" data-s="nvme" data-p="hostinger" data-price="6.49" data-cpu="1" data-ram="4" data-prepay="1" data-renew="$11.99"><td class="lvlc"><span class="lvl">L1</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 1</span></td>
+          <td class="price">$6.49<small>24-month prepay, renews at $11.99</small></td>
+          <td class="specs">1 vCPU / 4 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>4 TB</td>
+          <td class="note"><div title="Black Friday intro price. KVM 2 (2 vCPU / 8 GB / 100 GB / 8 TB) is $8.79, renews at $14.99. 10 locations. Month-to-month costs far more.">Black Friday intro price. KVM 2 (2 vCPU / 8 GB / 100 GB / 8 TB) is $8.79, renews at $14.99. 10 locations. Month-to-month costs far more.</div></td></tr>
+        <tr data-tier="2" data-s="nvme" data-p="ovh" data-price="4.54" data-cpu="2" data-ram="4" data-prepay="1"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-1</span></td>
+          <td class="price">from $4.54<small>12-month prepay</small></td>
+          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
+          <td class="note"><div title="Smallest OVH plan already has 4 GB.">Smallest OVH plan already has 4 GB.</div></td></tr>
+        <tr data-tier="2" data-s="nvme" data-p="hetzner" data-price="6.49" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX23 (shared x86)</span></td>
+          <td class="price">$6.49<small>excl. VAT</small></td>
+          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
+          <td class="note"><div title="Smallest Hetzner x86 plan already has 4 GB. EU only.">Smallest Hetzner x86 plan already has 4 GB. EU only.</div></td></tr>
+        <tr data-tier="2" data-s="nvme" data-p="hostinger" data-price="6.49" data-cpu="1" data-ram="4" data-prepay="1" data-renew="$11.99"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 1</span></td>
+          <td class="price">$6.49<small>24-month prepay, renews at $11.99</small></td>
+          <td class="specs">1 vCPU / 4 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>4 TB</td>
+          <td class="note"><div title="Smallest Hostinger plan already has 4 GB.">Smallest Hostinger plan already has 4 GB.</div></td></tr>
+        <tr data-tier="2" data-s="ssd" data-p="vultr" data-price="10.00" data-cpu="1" data-ram="2" data-prepay="0"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 2 GB</span></td>
+          <td class="price">$10.00</td>
+          <td class="specs">1 vCPU / 2 GB / 55 GB<span class="tag ssd">SSD</span></td><td>2 TB</td>
+          <td class="note"><div title="Previous-generation Intel CPUs.">Previous-generation Intel CPUs.</div></td></tr>
+        <tr data-tier="2" data-s="nvme" data-p="vultr" data-price="12.00" data-cpu="1" data-ram="2" data-prepay="0"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 2 GB</span></td>
+          <td class="price">$12.00</td>
+          <td class="specs">1 vCPU / 2 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>3 TB</td>
+          <td class="note"><div title="Newer AMD or Intel CPUs. 2 vCPU / 2 GB is $18.">Newer AMD or Intel CPUs. 2 vCPU / 2 GB is $18.</div></td></tr>
+        <tr data-tier="2" data-s="ssd" data-p="do" data-price="12.00" data-cpu="1" data-ram="2" data-prepay="0"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 2 GiB</span></td>
+          <td class="price">$12.00<small>$0.01786/hr</small></td>
+          <td class="specs">1 vCPU / 2 GiB / 50 GiB<span class="tag ssd">SSD</span></td><td>2 TB</td>
+          <td class="note"><div title="2 vCPU / 2 GiB / 60 GiB / 3 TB is $18.">2 vCPU / 2 GiB / 60 GiB / 3 TB is $18.</div></td></tr>
+        <tr data-tier="2" data-s="ssd" data-p="linode" data-price="12.00" data-cpu="1" data-ram="2" data-prepay="0"><td class="lvlc"><span class="lvl">L2</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 2 GB</span></td>
+          <td class="price">$12.00</td>
+          <td class="specs">1 vCPU / 2 GB / 50 GB<span class="tag ssd">SSD</span></td><td>2 TB</td>
+          <td class="note"><div title="Same price as DigitalOcean and Vultr High Performance.">Same price as DigitalOcean and Vultr High Performance.</div></td></tr>
+        <tr data-tier="3" data-s="nvme" data-p="ovh" data-price="4.54" data-cpu="2" data-ram="4" data-prepay="1"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-1</span></td>
+          <td class="price">from $4.54<small>12-month prepay</small></td>
+          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
+          <td class="note"><div title="Cheapest 4 GB here, with unlimited traffic at 500 Mbps.">Cheapest 4 GB here, with unlimited traffic at 500 Mbps.</div></td></tr>
+        <tr data-tier="3" data-s="nvme" data-p="hetzner" data-price="6.49" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX23 (shared x86)</span></td>
+          <td class="price">$6.49<small>excl. VAT</small></td>
+          <td class="specs">2 vCPU / 4 GB / 40 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
+          <td class="note"><div title="Cheapest 4 GB without a prepay. EU only.">Cheapest 4 GB without a prepay. EU only.</div></td></tr>
+        <tr data-tier="3" data-s="nvme" data-p="hostinger" data-price="6.49" data-cpu="1" data-ram="4" data-prepay="1" data-renew="$11.99"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 1</span></td>
+          <td class="price">$6.49<small>24-month prepay, renews at $11.99</small></td>
+          <td class="specs">1 vCPU / 4 GB / 50 GB<span class="tag nvme">NVMe</span></td><td>4 TB</td>
+          <td class="note"><div title="Only 1 vCPU at this level.">Only 1 vCPU at this level.</div></td></tr>
+        <tr data-tier="3" data-s="ssd" data-p="vultr" data-price="20.00" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 4 GB</span></td>
+          <td class="price">$20.00</td>
+          <td class="specs">2 vCPU / 4 GB / 80 GB<span class="tag ssd">SSD</span></td><td>3 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="3" data-s="nvme" data-p="vultr" data-price="24.00" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 4 GB</span></td>
+          <td class="price">$24.00</td>
+          <td class="specs">2 vCPU / 4 GB / 100 GB<span class="tag nvme">NVMe</span></td><td>5 TB</td>
+          <td class="note"><div title="Most transfer of the big-cloud 4 GB plans.">Most transfer of the big-cloud 4 GB plans.</div></td></tr>
+        <tr data-tier="3" data-s="ssd" data-p="do" data-price="24.00" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 4 GiB</span></td>
+          <td class="price">$24.00<small>$0.03571/hr</small></td>
+          <td class="specs">2 vCPU / 4 GiB / 80 GiB<span class="tag ssd">SSD</span></td><td>4 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="3" data-s="ssd" data-p="linode" data-price="24.00" data-cpu="2" data-ram="4" data-prepay="0"><td class="lvlc"><span class="lvl">L3</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 4 GB</span></td>
+          <td class="price">$24.00</td>
+          <td class="specs">2 vCPU / 4 GB / 80 GB<span class="tag ssd">SSD</span></td><td>4 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="4" data-s="nvme" data-p="ovh" data-price="8.50" data-cpu="4" data-ram="8" data-prepay="1"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-2</span></td>
+          <td class="price">from $8.50<small>12-month prepay</small></td>
+          <td class="specs">4 vCPU / 8 GB / 75 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
+          <td class="note"><div title="1 Gbps port.">1 Gbps port.</div></td></tr>
+        <tr data-tier="4" data-s="nvme" data-p="hostinger" data-price="8.79" data-cpu="2" data-ram="8" data-prepay="1" data-renew="$14.99"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 2</span></td>
+          <td class="price">$8.79<small>24-month prepay, renews at $14.99</small></td>
+          <td class="specs">2 vCPU / 8 GB / 100 GB<span class="tag nvme">NVMe</span></td><td>8 TB</td>
+          <td class="note"><div title="Most storage per dollar at this level.">Most storage per dollar at this level.</div></td></tr>
+        <tr data-tier="4" data-s="nvme" data-p="hetzner" data-price="9.99" data-cpu="4" data-ram="8" data-prepay="0"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX33 (shared x86)</span></td>
+          <td class="price">$9.99<small>excl. VAT · CAX21 Arm: $12.49</small></td>
+          <td class="specs">4 vCPU / 8 GB / 80 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
+          <td class="note"><div title="Cheapest 8 GB without a prepay. EU only.">Cheapest 8 GB without a prepay. EU only.</div></td></tr>
+        <tr data-tier="4" data-s="ssd" data-p="vultr" data-price="40.00" data-cpu="4" data-ram="8" data-prepay="0"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 8 GB</span></td>
+          <td class="price">$40.00</td>
+          <td class="specs">4 vCPU / 8 GB / 160 GB<span class="tag ssd">SSD</span></td><td>4 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="4" data-s="nvme" data-p="vultr" data-price="48.00" data-cpu="4" data-ram="8" data-prepay="0"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 8 GB</span></td>
+          <td class="price">$48.00</td>
+          <td class="specs">4 vCPU / 8 GB / 180 GB<span class="tag nvme">NVMe</span></td><td>6 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="4" data-s="ssd" data-p="do" data-price="48.00" data-cpu="4" data-ram="8" data-prepay="0"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 8 GiB</span></td>
+          <td class="price">$48.00<small>$0.07143/hr</small></td>
+          <td class="specs">4 vCPU / 8 GiB / 160 GiB<span class="tag ssd">SSD</span></td><td>5 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="4" data-s="ssd" data-p="linode" data-price="48.00" data-cpu="4" data-ram="8" data-prepay="0"><td class="lvlc"><span class="lvl">L4</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 8 GB</span></td>
+          <td class="price">$48.00</td>
+          <td class="specs">4 vCPU / 8 GB / 160 GB<span class="tag ssd">SSD</span></td><td>5 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="5" data-s="nvme" data-p="hostinger" data-price="12.99" data-cpu="4" data-ram="16" data-prepay="1" data-renew="$28.99"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">Hostinger</span><br><span class="plan">KVM 4</span></td>
+          <td class="price">$12.99<small>24-month prepay, renews at $28.99</small></td>
+          <td class="specs">4 vCPU / 16 GB / 200 GB<span class="tag nvme">NVMe</span></td><td>16 TB</td>
+          <td class="note"><div title="Cheapest 16 GB, but more than doubles at renewal.">Cheapest 16 GB, but more than doubles at renewal.</div></td></tr>
+        <tr data-tier="5" data-s="nvme" data-p="hetzner" data-price="18.49" data-cpu="8" data-ram="16" data-prepay="0"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">Hetzner</span><br><span class="plan">CX43 (shared x86)</span></td>
+          <td class="price">$18.49<small>excl. VAT · CAX31 Arm: $24.99</small></td>
+          <td class="specs">8 vCPU / 16 GB / 160 GB<span class="tag nvme">NVMe</span></td><td>20 TB</td>
+          <td class="note"><div title="Most vCPU per dollar at this level, with no prepay. EU only.">Most vCPU per dollar at this level, with no prepay. EU only.</div></td></tr>
+        <tr data-tier="5" data-s="nvme" data-p="ovh" data-price="23.37" data-cpu="8" data-ram="24" data-prepay="1"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">OVHcloud</span><br><span class="plan">VPS-4</span></td>
+          <td class="price">from $23.37<small>12-month prepay</small></td>
+          <td class="specs">8 vCPU / 24 GB / 200 GB<span class="tag nvme">NVMe</span></td><td>Unlimited</td>
+          <td class="note"><div title="VPS-3 has only 12 GB ($12.32), so VPS-4 is the first OVH plan with 16 GB or more.">VPS-3 has only 12 GB ($12.32), so VPS-4 is the first OVH plan with 16 GB or more.</div></td></tr>
+        <tr data-tier="5" data-s="ssd" data-p="vultr" data-price="80.00" data-cpu="6" data-ram="16" data-prepay="0"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">Vultr</span><br><span class="plan">Regular Performance 16 GB</span></td>
+          <td class="price">$80.00</td>
+          <td class="specs">6 vCPU / 16 GB / 320 GB<span class="tag ssd">SSD</span></td><td>5 TB</td>
+          <td class="note"><div title="Some trackers list 6 TB.">Some trackers list 6 TB.</div></td></tr>
+        <tr data-tier="5" data-s="nvme" data-p="vultr" data-price="96.00" data-cpu="8" data-ram="16" data-prepay="0"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">Vultr</span><br><span class="plan">High Performance 16 GB</span></td>
+          <td class="price">$96.00</td>
+          <td class="specs">8 vCPU / 16 GB / 350 GB<span class="tag nvme">NVMe</span></td><td>8 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="5" data-s="ssd" data-p="do" data-price="96.00" data-cpu="8" data-ram="16" data-prepay="0"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">DigitalOcean</span><br><span class="plan">Basic Droplet 16 GiB</span></td>
+          <td class="price">$96.00<small>$0.14286/hr</small></td>
+          <td class="specs">8 vCPU / 16 GiB / 320 GiB<span class="tag ssd">SSD</span></td><td>6 TB</td>
+          <td class="note"></td></tr>
+        <tr data-tier="5" data-s="ssd" data-p="linode" data-price="96.00" data-cpu="6" data-ram="16" data-prepay="0"><td class="lvlc"><span class="lvl">L5</span></td><td><span class="prov">Linode (Akamai)</span><br><span class="plan">Linode 16 GB</span></td>
+          <td class="price">$96.00</td>
+          <td class="specs">6 vCPU / 16 GB / 320 GB<span class="tag ssd">SSD</span></td><td>8 TB</td>
+          <td class="note"></td></tr>
+        </tbody>
+      </table>
+      <div class="empty" id="empty" hidden>No plans match the current filter.</div>
+    </div>
+  </section>
 </div>
 
 <script src="assets/map-data.js"></script>

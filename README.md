@@ -10,7 +10,7 @@ A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Lin
 | L4 | Cheapest with at least 8 GB RAM | Several containers, CI runner |
 | L5 | Cheapest with at least 16 GB RAM | Many services, larger databases |
 
-The overview combines a price-by-level chart, insights for the selected level and a map of each provider's data centers. Provider and level filters apply to all of them and to the plan table. Link to a level with `#level=3`.
+On desktop the whole dashboard fits one screen: a price-by-level chart, insights for the selected level and a map of each provider's data centers, above a compact plan table. Notes and sources sit behind the "Notes & sources" button. Provider and level filters apply to all of them and to the plan table. Link to a level with `#level=3`.
 
 **Live page:** https://lambdamax.github.io/vps-catalog/
 
