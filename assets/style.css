@@ -254,7 +254,9 @@ tbody tr td{transition:background-color .15s,opacity .15s}
 .mm-body svg{cursor:grab;touch-action:none}
 .mm-body svg.dragging{cursor:grabbing}
 .mm-body svg.dragging .pin{pointer-events:none}
-#pins .pin{cursor:zoom-in}
+/* dashboard dots: plain pointer (click opens the maximized map); magnifier cursor only inside the maximized map */
+#pins .pin{cursor:pointer}
+.mm-body #pins .pin{cursor:zoom-in}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
