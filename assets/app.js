@@ -473,6 +473,11 @@
   if(window.ResizeObserver)new ResizeObserver(resized).observe(chart);else window.addEventListener('resize',resized);
   drawPins();render();
 
+  /* Notes & sources popup closes on outside click or Esc */
+  var about=document.querySelector('.about');
+  document.addEventListener('click',function(e){if(about.open&&!about.contains(e.target))about.open=false});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&about.open){about.open=false;about.querySelector('summary').focus()}});
+
   /* theme toggle: auto -> light -> dark */
   var tb=document.getElementById('theme'),root=document.documentElement,modes=['auto','light','dark'];
   function setTheme(m){
