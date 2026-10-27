@@ -143,6 +143,7 @@
       card.animate([{transform:flip(r0,card.getBoundingClientRect()),opacity:.6},{transform:'none',opacity:1}],{duration:460,easing:'cubic-bezier(.2,.8,.2,1)'});
     }
     document.getElementById('map-close').focus();
+    drawPins();
     if(at)setTimeout(function(){flyTo(at.x,at.y,220)},calm?0:260);
   }
   function closeMap(){
@@ -197,6 +198,36 @@
     html+=g.items.map(function(i){return '<span class="dot" style="background:'+col(i.k)+'"></span>'+NAMES[i.k]+': '+i.n}).join('<br>');
     info.innerHTML=html;info.hidden=false;if(!calm)enter(info,'fade',0);
   }
+  /* city labels, maximized map only: one per location, skipped when they would overlap a label already placed
+     (busiest locations first), so zooming in reveals more; sized in screen pixels at any zoom */
+  var labels=el('g',{id:'labels','aria-hidden':'true'});svg.insertBefore(labels,pins);
+  function city(n){return n.replace(/\s*\(.*?\)/g,'').replace(/,\s*[A-Z]{2}$/,'').trim()}
+  function drawLabels(g){
+    labels.textContent='';
+    if(frame.parentElement!==mmBody)return;
+    var cw=svg.clientWidth||1,ch=svg.clientHeight||1,k=Math.max(curVB[2]/cw,curVB[3]/ch),fs=11*k,placed=[],r=4.2*scale;
+    var list=Object.keys(g).map(function(key){return g[key]}).sort(function(a,b){return b.items.length-a.items.length});
+    /* every dot cluster is an obstacle, so a label never sits on another location's dots */
+    var dots=list.map(function(grp){var rr=r*(grp.items.length>1?2.1:1.2);return {grp:grp,b:[grp.x-rr,grp.y-rr,2*rr,2*rr]}});
+    function hit(a,b){return a[0]<b[0]+b[2]&&b[0]<a[0]+a[2]&&a[1]<b[1]+b[3]&&b[1]<a[1]+a[3]}
+    list.forEach(function(grp){
+      var names=[];grp.items.forEach(function(i){var c=city(i.n);if(names.indexOf(c)<0)names.push(c)});
+      var text=names.slice(0,2).join(' / ')+(names.length>2?' +'+(names.length-2):''),w=text.length*fs*.56,h=fs*1.1;
+      var off=r*(grp.items.length>1?2.1:1.2)+3*k,gap=off+fs*.2;
+      /* candidate spots: right, left, above, below; [box x, box y, text x, text y, anchor] */
+      var spots=[[grp.x+off,grp.y-h/2,grp.x+off,grp.y+fs*.35,'start'],[grp.x-off-w,grp.y-h/2,grp.x-off,grp.y+fs*.35,'end'],
+                 [grp.x-w/2,grp.y-gap-h,grp.x,grp.y-gap-fs*.25,'middle'],[grp.x-w/2,grp.y+gap,grp.x,grp.y+gap+fs*.85,'middle']];
+      spots.some(function(o){
+        var b=[o[0],o[1],w,h];
+        if(b[0]<curVB[0]||b[0]+w>curVB[0]+curVB[2]||b[1]<curVB[1]||b[1]+h>curVB[1]+curVB[3])return false;
+        if(placed.some(function(p){return hit(b,p)}))return false;
+        if(dots.some(function(d){return d.grp!==grp&&hit(b,d.b)}))return false;
+        placed.push(b);
+        var t=el('text',{x:o[2].toFixed(2),y:o[3].toFixed(2),'text-anchor':o[4],'font-size':fs.toFixed(2),'stroke-width':(3*k).toFixed(2)});
+        t.textContent=text;labels.appendChild(t);return true;
+      });
+    });
+  }
   var popPins=true;
   function drawPins(){
     pins.textContent='';
@@ -221,6 +252,7 @@
         a.addEventListener('animationend',function(){a.classList.remove('pop')},{once:true})}
     });
     popPins=false;
+    drawLabels(g);
     paintFocus();
   }
 

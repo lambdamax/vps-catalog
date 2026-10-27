@@ -244,6 +244,10 @@ tbody tr td{transition:background-color .15s,opacity .15s}
 .mm-body .info{font-size:.8rem;padding:.45rem .7rem}
 .mapmodal .key{white-space:normal}
 
+/* city labels on the maximized map */
+#labels{pointer-events:none}
+#labels text{font-family:var(--body);font-weight:500;fill:var(--fg);stroke:var(--sea);stroke-linejoin:round;paint-order:stroke;opacity:.88}
+
 /* modal zoom controls and pan cursor */
 .mm-zoom{display:flex;align-items:center;gap:.2rem}
 .mm-zoom .zl{min-width:2.6rem;text-align:center;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}

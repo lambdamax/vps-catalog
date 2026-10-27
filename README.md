@@ -1,6 +1,7 @@
 # VPS Provider Comparison
 
 [![Live site](https://img.shields.io/badge/live-lambdamax.github.io%2Fvps--catalog-0b6b4f)](https://lambdamax.github.io/vps-catalog/)
+[![Release](https://img.shields.io/github/v/release/lambdamax/vps-catalog)](https://github.com/lambdamax/vps-catalog/releases/latest)
 [![Pages deploy](https://github.com/lambdamax/vps-catalog/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/lambdamax/vps-catalog/actions/workflows/pages/pages-build-deployment)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/lambdamax/vps-catalog)](https://github.com/lambdamax/vps-catalog/commits/main)
@@ -26,7 +27,7 @@ A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Lin
 | L4 | Cheapest with at least 8 GB RAM | Several containers, CI runner |
 | L5 | Cheapest with at least 16 GB RAM | Many services, larger databases |
 
-It is one interactive dashboard in a single panel: insight tiles for the selected level, a line chart of the lowest price per level (log scale) beside a data center map, and a plan table with price bars and a $/GB RAM column. Hovering a provider anywhere (line, legend, map dot, insight tile or table row) highlights it across the dashboard, and clicking pins it. Clicking a map dot (or the maximize button) opens the map in a large modal card that flies in to that spot; there dots magnify on hover and you can scroll or use + / − to zoom, drag to pan, click dots to fly closer, or jump to a region. Press Esc to exit. On desktop (900px wide and up) the page never scrolls; only the plan list scrolls inside when the window is short. Notes and sources sit behind the "Notes & sources" button. Motion respects the reduced-motion setting.
+It is one interactive dashboard in a single panel: insight tiles for the selected level, a line chart of the lowest price per level (log scale) beside a data center map, and a plan table with price bars and a $/GB RAM column. Hovering a provider anywhere (line, legend, map dot, insight tile or table row) highlights it across the dashboard, and clicking pins it. Clicking a map dot (or the maximize button) opens the map in a large modal card that flies in to that spot; there dots magnify on hover, city names label the dots (more appear as you zoom in), and you can scroll or use + / − to zoom, drag to pan, click dots to fly closer, or jump to a region. Press Esc to exit. On desktop (900px wide and up) the page never scrolls; only the plan list scrolls inside when the window is short. Notes and sources sit behind the "Notes & sources" button. Motion respects the reduced-motion setting.
 
 **Live page:** https://lambdamax.github.io/vps-catalog/
 
