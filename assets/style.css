@@ -214,7 +214,7 @@ body,.dash,.pop,.tip,.info,input,.scroll,th,.ins>div{transition:background-color
 .chart circle.sel{transform-box:fill-box;transform-origin:center;animation:pop .45s var(--ease)}
 .chart .series.draw circle.sel{animation:fade .3s .55s both}
 #pins .pin{transform-box:fill-box;transform-origin:center;transition:transform .28s cubic-bezier(.34,1.56,.64,1),filter .2s}
-#pins .pin:hover,#pins .pin:focus-visible{transform:scale(2.4);filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+#pins .pin:hover,#pins .pin:focus-visible{transform:scale(3.2);filter:drop-shadow(0 0 1.2px var(--bg)) drop-shadow(0 1px 3px rgba(0,0,0,.45))}
 #pins circle{transform-box:fill-box;transform-origin:center;transition:opacity .2s,transform .28s cubic-bezier(.34,1.56,.64,1)}
 #pins circle.focus{transform:scale(1.5)}
 #pins .pin.pop{animation:pop .4s var(--ease) both}
@@ -242,6 +242,14 @@ tbody tr td{transition:background-color .15s,opacity .15s}
 .mm-legend .dim{opacity:.45}
 .mm-body .info{font-size:.8rem;padding:.45rem .7rem}
 .mapmodal .key{white-space:normal}
+
+/* modal zoom controls and pan cursor */
+.mm-zoom{display:flex;align-items:center;gap:.2rem}
+.mm-zoom .zl{min-width:2.6rem;text-align:center;font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.mm-body svg{cursor:grab;touch-action:none}
+.mm-body svg.dragging{cursor:grabbing}
+.mm-body svg.dragging .pin{pointer-events:none}
+#pins .pin{cursor:zoom-in}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}

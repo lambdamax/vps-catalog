@@ -58,7 +58,7 @@
         <div class="mapslot" id="map-slot">
         <div class="mapframe" id="mapframe"><svg id="map" viewBox="0 0 960 500" role="img" aria-label="World map of VPS data center locations by provider"><path class="land" id="land"/><g id="pins"></g></svg><div class="info" id="info" hidden></div></div>
         </div>
-        <p class="key" title="Dot: city confirmed. Ring: the provider lists only the country, so the dot sits at the country centre. Hetzner CX plans run only in Germany and Finland.">Dot: city confirmed · Ring: country only · Hetzner CX: Germany and Finland only</p>
+        <p class="key" title="Dot: city confirmed. Ring: the provider lists only the country, so the dot sits at the country centre. Hetzner CX plans run only in Germany and Finland. Click a dot to open the zoomable map.">Click a dot to zoom in · Dot: city · Ring: country only</p>
       </section>
     </div>
 
@@ -225,9 +225,10 @@
   <dialog class="mapmodal" id="map-modal" aria-labelledby="mm-title">
     <div class="mm-card" id="mm-card">
       <div class="ph"><h2 id="mm-title">Data centers</h2><div class="mm-legend" id="mm-legend"></div><div class="mm-views" id="mm-views"></div>
+        <div class="mm-zoom" role="group" aria-label="Zoom"><button class="vbtn icon" id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 8h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button><span class="zl" id="zoom-lvl" aria-live="polite">1×</span><button class="vbtn icon" id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button><button class="vbtn icon" id="zoom-reset" type="button" aria-label="Reset zoom" title="Reset to world view"><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.5v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
         <button class="vbtn icon" id="map-close" type="button" aria-label="Close map" title="Close (Esc)"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
       <div class="mm-body" id="mm-body"></div>
-      <p class="key">Dot: city confirmed. Ring: the provider lists only the country, so the dot sits at the country centre. Hover a dot for its sites; hover a provider to highlight its locations.</p>
+      <p class="key">Dot: city confirmed. Ring: the provider lists only the country, so the dot sits at the country centre. Scroll or use + / − to zoom, drag to pan, click a dot to fly in. Hover a dot for its sites; hover a provider to highlight its locations.</p>
     </div>
   </dialog>
 </div>

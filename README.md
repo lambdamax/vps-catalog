@@ -14,6 +14,7 @@
 ![Dependencies](https://img.shields.io/badge/dependencies-0-success)
 ![Interactive dashboard](https://img.shields.io/badge/dashboard-interactive-7B61D9)
 ![Dark mode](https://img.shields.io/badge/dark%20mode-yes-111715)
+![Zoomable map](https://img.shields.io/badge/map-zoom%20%2B%20pan-D55E00)
 
 A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Linode (Akamai), Hetzner, Hostinger and OVHcloud at five levels:
 
@@ -25,7 +26,7 @@ A single-page comparison of SSD and NVMe VPS plans from Vultr, DigitalOcean, Lin
 | L4 | Cheapest with at least 8 GB RAM | Several containers, CI runner |
 | L5 | Cheapest with at least 16 GB RAM | Many services, larger databases |
 
-It is one interactive dashboard in a single panel: insight tiles for the selected level, a line chart of the lowest price per level (log scale) beside a data center map, and a plan table with price bars and a $/GB RAM column. Hovering a provider anywhere (line, legend, map dot, insight tile or table row) highlights it across the dashboard, and clicking pins it. The map can be maximized into a large modal card and zoomed by region. On desktop (900px wide and up) the page never scrolls; only the plan list scrolls inside when the window is short. Notes and sources sit behind the "Notes & sources" button. Motion respects the reduced-motion setting.
+It is one interactive dashboard in a single panel: insight tiles for the selected level, a line chart of the lowest price per level (log scale) beside a data center map, and a plan table with price bars and a $/GB RAM column. Hovering a provider anywhere (line, legend, map dot, insight tile or table row) highlights it across the dashboard, and clicking pins it. Map dots magnify on hover. Clicking a dot (or the maximize button) opens the map in a large modal card that flies in to that spot; there you can scroll or use + / − to zoom, drag to pan, click dots to fly closer, or jump to a region. On desktop (900px wide and up) the page never scrolls; only the plan list scrolls inside when the window is short. Notes and sources sit behind the "Notes & sources" button. Motion respects the reduced-motion setting.
 
 **Live page:** https://lambdamax.github.io/vps-catalog/
 

@@ -90,19 +90,33 @@
   var vb=document.getElementById('views');
   Object.keys(VL).forEach(function(v){
     var b=document.createElement('button');b.className='vbtn';b.type='button';b.textContent=VL[v];b.dataset.v=v;b.setAttribute('aria-pressed',v==='world'?'true':'false');
-    b.addEventListener('click',function(){
-      [].forEach.call(vb.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});zoomTo(v);
-    });vb.appendChild(b);
+    b.addEventListener('click',function(){pressRegion(v);zoomTo(v)});vb.appendChild(b);
   });
   /* glide the map viewBox between regions; pins are redrawn each frame so they keep a constant on-screen size */
   var curVB=VIEWS.world.split(' ').map(Number),vbRaf;
-  function setVB(c){curVB=c;svg.setAttribute('viewBox',c.map(function(n){return n.toFixed(2)}).join(' '));scale=c[2]/960;drawPins()}
-  function zoomTo(v){
-    var to=VIEWS[v].split(' ').map(Number),from=curVB.slice(),t0=performance.now();cancelAnimationFrame(vbRaf);
+  function setVB(c){curVB=c;svg.setAttribute('viewBox',c.map(function(n){return n.toFixed(2)}).join(' '));scale=c[2]/960;drawPins();
+    var zl=document.getElementById('zoom-lvl');if(zl)zl.textContent=(960/c[2]).toFixed(1).replace(/\.0$/,'')+'×'}
+  var region='world';
+  function pressRegion(v){region=v;[].forEach.call(vb.children,function(x){x.setAttribute('aria-pressed',x.dataset.v===v?'true':'false')})}
+  function animateVB(to,dur){
+    var from=curVB.slice(),t0=performance.now();cancelAnimationFrame(vbRaf);
     if(calm){setVB(to);return}
-    (function step(t){var k=Math.min(1,(t-t0)/600),e=ease(k);
+    (function step(t){var k=Math.min(1,(t-t0)/(dur||600)),e=ease(k);
       setVB(from.map(function(f,i){return f+(to[i]-f)*e}));if(k<1)vbRaf=requestAnimationFrame(step)})(t0);
   }
+  function zoomTo(v){animateVB(VIEWS[v].split(' ').map(Number))}
+  /* free zoom (modal): a box of width w centred on (cx,cy), kept roughly on the map */
+  function box(cx,cy,w){
+    w=Math.max(60,Math.min(1000,w));var h=w*500/960;
+    var x=Math.max(-w*.25,Math.min(960-w*.75,cx-w/2)),y=Math.max(-h*.25,Math.min(500-h*.75,cy-h/2));
+    return [x,y,w,h];
+  }
+  function zoomAround(cx,cy,f,animate){
+    var w=curVB[2]*f,h=w*500/960,nx=cx-(cx-curVB[0])*f,ny=cy-(cy-curVB[1])*(h/curVB[3]);
+    var b=box(nx+w/2,ny+h/2,w);pressRegion(null);if(animate)animateVB(b,380);else{cancelAnimationFrame(vbRaf);setVB(b)}
+  }
+  function flyTo(cx,cy,w){pressRegion(null);animateVB(box(cx,cy,w),700)}
+  function svgPoint(e){var p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
   /* maximize: the live map moves into a modal card that zooms out from the panel (FLIP) and shrinks back on close */
   var modal=document.getElementById('map-modal'),card=document.getElementById('mm-card'),frame=document.getElementById('mapframe'),
       slot=document.getElementById('map-slot'),mmBody=document.getElementById('mm-body'),mmViews=document.getElementById('mm-views'),
@@ -118,8 +132,9 @@
       linkHover(b,k);b.addEventListener('click',function(){togglePin(k)});mmLegend.appendChild(b);
     });
   }
-  function openMap(){
-    if(modal.open)return;
+  function openMap(at){
+    if(closing)return;
+    if(modal.open){if(at)flyTo(at.x,at.y,Math.min(curVB[2]*.5,240));return}
     var r0=frame.getBoundingClientRect();
     buildModalLegend();mmBody.appendChild(frame);mmViews.appendChild(vb);
     modal.showModal();
@@ -128,17 +143,39 @@
       card.animate([{transform:flip(r0,card.getBoundingClientRect()),opacity:.6},{transform:'none',opacity:1}],{duration:460,easing:'cubic-bezier(.2,.8,.2,1)'});
     }
     document.getElementById('map-close').focus();
+    if(at)setTimeout(function(){flyTo(at.x,at.y,220)},calm?0:260);
   }
   function closeMap(){
     if(!modal.open||closing)return;
-    var done=function(){slot.appendChild(frame);mapPh.insertBefore(vb,maxBtn);modal.classList.remove('closing');modal.close();closing=false;maxBtn.focus()};
+    var done=function(){slot.appendChild(frame);mapPh.insertBefore(vb,maxBtn);modal.classList.remove('closing');modal.close();closing=false;
+      var r=region||'world';pressRegion(r);cancelAnimationFrame(vbRaf);setVB(VIEWS[r].split(' ').map(Number));maxBtn.focus()};
     if(calm){done();return}
     closing=true;modal.classList.add('closing');
     var to=slot.getBoundingClientRect();to={left:to.left,top:to.top,width:to.width||1,height:Math.max(to.height,frame.offsetHeight*.3)||1};
     card.style.transformOrigin='0 0';
     card.animate([{transform:'none',opacity:1},{transform:flip(to,card.getBoundingClientRect()),opacity:.4}],{duration:360,easing:'cubic-bezier(.4,0,.2,1)'}).onfinish=done;
   }
-  maxBtn.addEventListener('click',openMap);
+  maxBtn.addEventListener('click',function(){openMap()});
+  /* modal zoom: wheel zooms toward the cursor, drag pans, +/- and reset buttons */
+  document.getElementById('zoom-in').addEventListener('click',function(){zoomAround(curVB[0]+curVB[2]/2,curVB[1]+curVB[3]/2,.6,true)});
+  document.getElementById('zoom-out').addEventListener('click',function(){zoomAround(curVB[0]+curVB[2]/2,curVB[1]+curVB[3]/2,1/.6,true)});
+  document.getElementById('zoom-reset').addEventListener('click',function(){pressRegion('world');zoomTo('world')});
+  svg.addEventListener('wheel',function(e){
+    if(!modal.open)return;e.preventDefault();var p=svgPoint(e);zoomAround(p.x,p.y,Math.exp(e.deltaY*.0018),false);
+  },{passive:false});
+  var drag=null,dragged=false;
+  svg.addEventListener('pointerdown',function(e){
+    if(!modal.open||e.button!==0)return;drag={x:e.clientX,y:e.clientY,vb:curVB.slice(),k:curVB[2]/svg.clientWidth};dragged=false;
+  });
+  window.addEventListener('pointermove',function(e){
+    if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(!dragged&&Math.abs(dx)+Math.abs(dy)<4)return;
+    if(!dragged){dragged=true;svg.classList.add('dragging');try{svg.setPointerCapture(e.pointerId)}catch(_){}}
+    cancelAnimationFrame(vbRaf);pressRegion(null);
+    var w=drag.vb[2],k=Math.max(drag.k,drag.vb[3]/svg.clientHeight);
+    setVB(box(drag.vb[0]+w/2-dx*k,drag.vb[1]+drag.vb[3]/2-dy*k,w));
+  });
+  window.addEventListener('pointerup',function(){if(drag){drag=null;svg.classList.remove('dragging');setTimeout(function(){dragged=false},0)}});
   document.getElementById('map-close').addEventListener('click',closeMap);
   modal.addEventListener('cancel',function(e){e.preventDefault();closeMap()});
   modal.addEventListener('click',function(e){if(e.target===modal)closeMap()});
@@ -161,7 +198,7 @@
   var popPins=true;
   function drawPins(){
     pins.textContent='';
-    var g=groups(),r=3.6*scale;
+    var g=groups(),r=4.2*scale;
     Object.keys(g).forEach(function(key){
       var grp=g[key],n=grp.items.length,a=el('g',{class:'pin',tabindex:'0',role:'button','aria-label':n+' provider sites, '+grp.items.map(function(i){return NAMES[i.k]+' '+i.n}).join('; ')});
       grp.items.forEach(function(it,idx){
@@ -173,7 +210,9 @@
         a.appendChild(c);
       });
       /* bring the hovered pin above its neighbours so the enlarged dot isn't covered */
-      a.addEventListener('mouseenter',function(){if(a!==pins.lastChild)pins.appendChild(a);show(grp);if(n===1)hoverOn(grp.items[0].k)});a.addEventListener('mouseleave',hoverOff);a.addEventListener('focus',function(){show(grp)});a.addEventListener('click',function(){show(grp)});
+      a.addEventListener('mouseenter',function(){if(a!==pins.lastChild)pins.appendChild(a);show(grp);if(n===1)hoverOn(grp.items[0].k)});a.addEventListener('mouseleave',hoverOff);a.addEventListener('focus',function(){show(grp)});
+      a.addEventListener('click',function(){if(dragged)return;show(grp);openMap({x:grp.x,y:grp.y})});
+      a.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();show(grp);openMap({x:grp.x,y:grp.y})}});
       pins.appendChild(a);
       if(popPins&&!calm){enter(a,'pop',Math.min(pins.childNodes.length*6,420));
         /* drop the entrance class once done, or its fill-mode would pin the scale and block the hover growth */
